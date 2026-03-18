@@ -3,9 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import Badge from '../components/common/Badge';
 import { getItem, setItem } from '../utils/storage';
 import { formatDate } from '../utils/formatters';
-import { colors, commonStyles, spacing, borderRadius } from '../theme';
+import { colors, commonStyles, spacing, shadows, transitions } from '../theme';
 
-const STATUS_COLORS = { upcoming: '#3498db', active: '#81b64c', completed: '#888' };
+const STATUS_COLORS = { upcoming: '#60a5fa', active: '#7cb342', completed: '#6b6b74' };
 const STATUS_LABELS = { upcoming: 'Upcoming', active: 'Live', completed: 'Completed' };
 
 export default function Tournaments() {
@@ -33,10 +33,22 @@ export default function Tournaments() {
 
   return (
     <div style={commonStyles.page}>
-      <h1 style={{ color: colors.text, marginBottom: spacing.lg }}>Tournaments</h1>
-      <div style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.lg }}>
+      <h1 style={{ color: colors.text, marginBottom: spacing.lg, fontWeight: 800, letterSpacing: '-0.02em' }}>Tournaments</h1>
+      <div style={{ display: 'flex', gap: spacing.xs, marginBottom: spacing.lg, backgroundColor: colors.bgDeep, padding: 4, borderRadius: 10 }}>
         {['upcoming', 'active', 'completed'].map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{ ...commonStyles.button, backgroundColor: tab === t ? colors.accent : 'transparent', border: `2px solid ${tab === t ? colors.accent : colors.borderLight}`, color: tab === t ? colors.white : colors.textSecondary }}>
+          <button key={t} onClick={() => setTab(t)} style={{
+            padding: '10px 20px',
+            backgroundColor: tab === t ? colors.bgCard : 'transparent',
+            border: 'none',
+            borderRadius: 8,
+            color: tab === t ? colors.text : colors.textMuted,
+            fontWeight: tab === t ? 600 : 400,
+            cursor: 'pointer',
+            fontSize: 14,
+            transition: `all ${transitions.fast}`,
+            fontFamily: 'inherit',
+            boxShadow: tab === t ? shadows.sm : 'none',
+          }}>
             {STATUS_LABELS[t]}
           </button>
         ))}
@@ -47,19 +59,19 @@ export default function Tournaments() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: spacing.md }}>
-          {filtered.map((tourney) => {
+          {filtered.map((tourney, i) => {
             const isRegistered = currentUser && tourney.registeredIds.includes(currentUser.id);
             const isFull = tourney.participants >= tourney.maxParticipants;
             const eloInRange = !currentUser || (currentUser.elo >= tourney.eloRange[0] && currentUser.elo <= tourney.eloRange[1]);
             return (
-              <div key={tourney.id} style={commonStyles.card}>
+              <div key={tourney.id} style={{ ...commonStyles.card, animation: `fadeIn 300ms ease ${i * 80}ms both` }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, marginBottom: 4 }}>
-                      <h3 style={{ color: colors.text, margin: 0 }}>{tourney.name}</h3>
+                      <h3 style={{ color: colors.text, margin: 0, fontWeight: 600 }}>{tourney.name}</h3>
                       <Badge text={STATUS_LABELS[tourney.status]} color={STATUS_COLORS[tourney.status]} />
                     </div>
-                    <p style={{ color: colors.textSecondary, margin: 0, fontSize: 14 }}>{tourney.description}</p>
+                    <p style={{ color: colors.textSecondary, margin: 0, fontSize: 14, lineHeight: 1.5 }}>{tourney.description}</p>
                   </div>
                   {tourney.status === 'upcoming' && currentUser && (
                     <button
@@ -67,9 +79,10 @@ export default function Tournaments() {
                       disabled={isRegistered || isFull || !eloInRange}
                       style={{
                         ...commonStyles.button,
-                        opacity: isRegistered || isFull || !eloInRange ? 0.5 : 1,
-                        backgroundColor: isRegistered ? colors.bgDeep : colors.accent,
+                        opacity: isRegistered || isFull || !eloInRange ? 0.4 : 1,
+                        backgroundColor: isRegistered ? colors.bgDeep : undefined,
                         color: isRegistered ? colors.textSecondary : colors.white,
+                        background: isRegistered ? colors.bgDeep : `linear-gradient(135deg, ${colors.accent}, ${colors.accentHover})`,
                       }}
                     >
                       {isRegistered ? 'Registered' : isFull ? 'Full' : !eloInRange ? 'ELO Out of Range' : 'Register'}
@@ -85,18 +98,18 @@ export default function Tournaments() {
                     { label: 'ELO Range', value: tourney.eloRange[1] === 9999 ? `${tourney.eloRange[0]}+` : `${tourney.eloRange[0]}-${tourney.eloRange[1]}` },
                   ].map((item) => (
                     <div key={item.label}>
-                      <div style={{ color: colors.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>{item.label}</div>
-                      <div style={{ color: colors.text, fontSize: 14, fontWeight: 500 }}>{item.value}</div>
+                      <div style={{ color: colors.textDark, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>{item.label}</div>
+                      <div style={{ color: colors.text, fontSize: 14, fontWeight: 500, marginTop: 2 }}>{item.value}</div>
                     </div>
                   ))}
                 </div>
                 {tourney.standings && (
                   <div style={{ marginTop: spacing.md, borderTop: `1px solid ${colors.border}`, paddingTop: spacing.md }}>
-                    <h4 style={{ color: colors.textSecondary, marginTop: 0, marginBottom: spacing.sm }}>Standings</h4>
+                    <h4 style={{ color: colors.textSecondary, marginTop: 0, marginBottom: spacing.sm, fontWeight: 600, fontSize: 13 }}>Standings</h4>
                     {tourney.standings.map((s, idx) => {
                       const player = players.find((p) => p.id === s.playerId);
                       return (
-                        <div key={s.playerId} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: `1px solid ${colors.border}` }}>
+                        <div key={s.playerId} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: `1px solid ${colors.border}` }}>
                           <span style={{ color: colors.text, fontSize: 14 }}>{idx + 1}. {player?.username || 'Unknown'}</span>
                           <span style={{ color: colors.accent, fontSize: 14, fontWeight: 600 }}>{s.points}/{s.played}</span>
                         </div>

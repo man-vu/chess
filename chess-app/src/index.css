@@ -1,10 +1,213 @@
-* {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   margin: 0;
-  background: #312e2b;
+  background: #1a1a1d;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #ececef;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a40;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a52;
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid #7cb342;
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: rgba(124, 179, 66, 0.3);
+  color: #ececef;
+}
+
+/* Touch optimization */
+@media (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes matchmakingBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pieceDrop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(124, 179, 66, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(124, 179, 66, 0.4); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== MOBILE RESPONSIVE ===== */
+
+/* Tablet: 768px */
+@media (max-width: 768px) {
+  /* Board squares shrink */
+  .board-square {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  .board-square .piece-symbol {
+    font-size: 32px !important;
+  }
+  .board-label {
+    width: 18px !important;
+    height: 44px !important;
+    font-size: 10px !important;
+  }
+  .board-file-label {
+    width: 44px !important;
+    height: 18px !important;
+    font-size: 10px !important;
+  }
+
+  /* Navbar collapses */
+  .nav-links {
+    display: none !important;
+  }
+  .nav-logo-text {
+    display: none !important;
+  }
+  .nav-user-info {
+    display: none !important;
+  }
+  .nav-logout-btn {
+    display: none !important;
+  }
+}
+
+/* Phone: 480px */
+@media (max-width: 480px) {
+  /* Tiny board for small phones */
+  .board-square {
+    width: 38px !important;
+    height: 38px !important;
+  }
+  .board-square .piece-symbol {
+    font-size: 28px !important;
+  }
+  .board-label {
+    width: 14px !important;
+    height: 38px !important;
+    font-size: 9px !important;
+  }
+  .board-file-label {
+    width: 38px !important;
+    height: 14px !important;
+    font-size: 9px !important;
+  }
+}
+
+/* Game layout: stack board + sidebar vertically on mobile */
+@media (max-width: 900px) {
+  /* Force game play pages to stack vertically */
+  [style*="alignItems: flex-start"][style*="gap:"] {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+}
+
+/* Dashboard grid: single column on mobile */
+@media (max-width: 768px) {
+  [style*="gridTemplateColumns: 2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
 }

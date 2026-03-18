@@ -2,16 +2,16 @@ import { useState, useMemo } from 'react';
 import Badge from '../components/common/Badge';
 import { getItem } from '../utils/storage';
 import { formatDate } from '../utils/formatters';
-import { colors, commonStyles, spacing, borderRadius } from '../theme';
+import { colors, commonStyles, spacing, shadows, transitions } from '../theme';
 
 const CATEGORY_COLORS = {
-  Championship: '#e74c3c',
-  Analysis: '#3498db',
-  Tutorial: '#2ecc71',
-  Platform: '#9b59b6',
-  Strategy: '#e67e22',
-  Puzzles: '#f1c40f',
-  Players: '#1abc9c',
+  Championship: '#ef4444',
+  Analysis: '#60a5fa',
+  Tutorial: '#7cb342',
+  Platform: '#a78bfa',
+  Strategy: '#f59e0b',
+  Puzzles: '#fbbf24',
+  Players: '#34d399',
 };
 
 export default function News() {
@@ -23,13 +23,16 @@ export default function News() {
   if (article) {
     return (
       <div style={commonStyles.page}>
-        <button onClick={() => setSelected(null)} style={{ ...commonStyles.buttonSecondary, marginBottom: spacing.md, fontSize: 13 }}>
-          {'<'} Back to news
+        <button onClick={() => setSelected(null)} style={{
+          ...commonStyles.buttonSecondary, marginBottom: spacing.md, fontSize: 13,
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <span style={{ fontSize: 16 }}>&larr;</span> Back to news
         </button>
-        <div style={commonStyles.card}>
+        <div style={{ ...commonStyles.card, animation: 'fadeIn 300ms ease' }}>
           <Badge text={article.category} color={CATEGORY_COLORS[article.category] || colors.accent} style={{ marginBottom: spacing.md }} />
-          <h1 style={{ color: colors.text, marginTop: spacing.sm, marginBottom: spacing.sm }}>{article.title}</h1>
-          <div style={{ color: colors.textMuted, fontSize: 13, marginBottom: spacing.lg }}>
+          <h1 style={{ color: colors.text, marginTop: spacing.sm, marginBottom: spacing.sm, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{article.title}</h1>
+          <div style={{ color: colors.textDark, fontSize: 13, marginBottom: spacing.lg }}>
             By {article.author} &middot; {formatDate(article.date)}
           </div>
           <p style={{ color: colors.textSecondary, lineHeight: 1.8, fontSize: 16 }}>{article.content}</p>
@@ -40,23 +43,34 @@ export default function News() {
 
   return (
     <div style={commonStyles.page}>
-      <h1 style={{ color: colors.text, marginBottom: spacing.lg }}>Chess News</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350, 1fr))', gap: spacing.lg }}>
-        {articles.map((article) => (
+      <h1 style={{ color: colors.text, marginBottom: spacing.lg, fontWeight: 800, letterSpacing: '-0.02em' }}>Chess News</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: spacing.lg }}>
+        {articles.map((article, i) => (
           <div
             key={article.id}
             onClick={() => setSelected(article.id)}
-            style={{ ...commonStyles.card, cursor: 'pointer', transition: 'border-color 0.2s, transform 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; e.currentTarget.style.transform = 'translateY(0)'; }}
+            style={{
+              ...commonStyles.cardHoverable,
+              animation: `fadeInUp 400ms ease ${i * 80}ms both`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = CATEGORY_COLORS[article.category] || colors.accent;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = shadows.md;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = colors.border;
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.sm }}>
               <Badge text={article.category} color={CATEGORY_COLORS[article.category] || colors.accent} />
-              <span style={{ color: colors.textMuted, fontSize: 12 }}>{formatDate(article.date)}</span>
+              <span style={{ color: colors.textDark, fontSize: 12 }}>{formatDate(article.date)}</span>
             </div>
-            <h3 style={{ color: colors.text, margin: `${spacing.sm}px 0`, lineHeight: 1.3 }}>{article.title}</h3>
-            <p style={{ color: colors.textSecondary, fontSize: 14, lineHeight: 1.5, margin: 0 }}>{article.excerpt}</p>
-            <div style={{ color: colors.textMuted, fontSize: 12, marginTop: spacing.sm }}>By {article.author}</div>
+            <h3 style={{ color: colors.text, margin: `${spacing.sm}px 0`, lineHeight: 1.3, fontWeight: 600 }}>{article.title}</h3>
+            <p style={{ color: colors.textSecondary, fontSize: 14, lineHeight: 1.6, margin: 0 }}>{article.excerpt}</p>
+            <div style={{ color: colors.textDark, fontSize: 12, marginTop: spacing.md }}>By {article.author}</div>
           </div>
         ))}
       </div>

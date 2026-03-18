@@ -6,7 +6,7 @@ export default function useStockfish(skillLevel = 10) {
   const onMoveRef = useRef(null);
 
   useEffect(() => {
-    const worker = new Worker('/stockfish.js');
+    const worker = new Worker(`${import.meta.env.BASE_URL}stockfish.js`);
     engineRef.current = worker;
 
     worker.onmessage = (e) => {

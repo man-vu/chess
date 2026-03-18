@@ -8,7 +8,7 @@ import StatCard from '../components/common/StatCard';
 import { getItem } from '../utils/storage';
 import { getEloTier } from '../utils/elo';
 import { formatDate, getWinRate } from '../utils/formatters';
-import { colors, commonStyles, spacing, borderRadius } from '../theme';
+import { colors, commonStyles, spacing, shadows, transitions } from '../theme';
 
 export default function Profile() {
   const { userId } = useParams();
@@ -30,7 +30,7 @@ export default function Profile() {
   const isOwn = currentUser && currentUser.id === userId;
 
   if (!user) {
-    return <div style={{ ...commonStyles.page, color: colors.textSecondary, textAlign: 'center', paddingTop: 80 }}>Player not found</div>;
+    return <div style={{ ...commonStyles.page, color: colors.textSecondary, textAlign: 'center', paddingTop: 80, fontSize: 16 }}>Player not found</div>;
   }
 
   const tier = getEloTier(user.elo);
@@ -42,30 +42,41 @@ export default function Profile() {
 
   return (
     <div style={commonStyles.page}>
-      <div style={{ ...commonStyles.card, display: 'flex', gap: spacing.xl, alignItems: 'center', marginBottom: spacing.lg }}>
+      <div style={{
+        ...commonStyles.card, display: 'flex', gap: spacing.xl, alignItems: 'center', marginBottom: spacing.lg,
+        background: `linear-gradient(135deg, ${colors.bgCard} 0%, ${colors.bgDeep} 100%)`,
+        animation: 'fadeIn 400ms ease',
+      }}>
         <Avatar username={user.username} size={80} />
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, marginBottom: 4 }}>
-            <h1 style={{ color: colors.text, fontSize: 28, margin: 0 }}>{user.username}</h1>
+            <h1 style={{ color: colors.text, fontSize: 28, margin: 0, fontWeight: 800, letterSpacing: '-0.02em' }}>{user.username}</h1>
             <Badge text={tier.name} color={tier.color} />
           </div>
           <div style={{ color: colors.accent, fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{user.elo} ELO</div>
-          <div style={{ color: colors.textMuted, fontSize: 13 }}>Member since {formatDate(user.joinedAt)}</div>
+          <div style={{ color: colors.textDark, fontSize: 13 }}>Member since {formatDate(user.joinedAt)}</div>
           {editingBio ? (
             <div style={{ marginTop: spacing.sm, display: 'flex', gap: spacing.sm }}>
-              <input value={bio} onChange={(e) => setBio(e.target.value)} style={{ ...commonStyles.input, flex: 1 }} placeholder="Write something about yourself..." />
+              <input value={bio} onChange={(e) => setBio(e.target.value)} style={{ ...commonStyles.input, flex: 1 }} placeholder="Write something about yourself..."
+                onFocus={(e) => { e.target.style.borderColor = colors.borderFocus; }}
+                onBlur={(e) => { e.target.style.borderColor = colors.borderLight; }}
+              />
               <button onClick={saveBio} style={{ ...commonStyles.button, padding: '8px 16px' }}>Save</button>
             </div>
           ) : (
             <div style={{ marginTop: spacing.sm }}>
-              <p style={{ color: colors.textSecondary, fontSize: 14, margin: 0 }}>{user.bio || 'No bio yet.'}</p>
-              {isOwn && <button onClick={startEditBio} style={{ ...commonStyles.buttonSecondary, padding: '4px 12px', fontSize: 12, marginTop: 4 }}>Edit Bio</button>}
+              <p style={{ color: colors.textSecondary, fontSize: 14, margin: 0, lineHeight: 1.5 }}>{user.bio || 'No bio yet.'}</p>
+              {isOwn && (
+                <button onClick={startEditBio} style={{
+                  ...commonStyles.buttonSecondary, padding: '4px 12px', fontSize: 12, marginTop: 6,
+                }}>Edit Bio</button>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: spacing.md, marginBottom: spacing.lg, flexWrap: 'wrap', animation: 'fadeInUp 400ms ease 100ms both' }}>
         <StatCard label="Games Played" value={totalGames} />
         <StatCard label="Wins" value={user.wins || 0} color={colors.success} />
         <StatCard label="Losses" value={user.losses || 0} color={colors.error} />
@@ -75,30 +86,33 @@ export default function Profile() {
 
       {eloHistory.length > 1 && (
         <div style={{ ...commonStyles.card, marginBottom: spacing.lg }}>
-          <h3 style={{ color: colors.text, marginTop: 0, marginBottom: spacing.md }}>ELO History</h3>
+          <h3 style={{ color: colors.text, marginTop: 0, marginBottom: spacing.md, fontWeight: 600 }}>ELO History</h3>
           <EloChart history={eloHistory} />
         </div>
       )}
 
       {games.length > 0 && (
         <div style={commonStyles.card}>
-          <h3 style={{ color: colors.text, marginTop: 0, marginBottom: spacing.md }}>Recent Games</h3>
+          <h3 style={{ color: colors.text, marginTop: 0, marginBottom: spacing.md, fontWeight: 600 }}>Recent Games</h3>
           {games.slice(0, 10).map((g) => (
-            <div key={g.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${colors.border}` }}>
+            <div key={g.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '12px 0', borderBottom: `1px solid ${colors.border}`,
+            }}>
               <div>
                 <span style={{ color: colors.text, fontWeight: 500 }}>vs {g.opponentName}</span>
-                <span style={{ color: colors.textMuted, fontSize: 12, marginLeft: 8 }}>{g.mode}</span>
+                <span style={{ color: colors.textDark, fontSize: 12, marginLeft: 8 }}>{g.mode}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm }}>
                 <span style={{ color: g.result === 'win' ? colors.success : g.result === 'loss' ? colors.error : colors.warning, fontWeight: 600, fontSize: 14 }}>
                   {g.result === 'win' ? 'Won' : g.result === 'loss' ? 'Lost' : 'Draw'}
                 </span>
                 {g.eloChange != null && (
-                  <span style={{ color: g.eloChange >= 0 ? colors.success : colors.error, fontSize: 12 }}>
+                  <span style={{ color: g.eloChange >= 0 ? colors.success : colors.error, fontSize: 12, fontWeight: 600 }}>
                     {g.eloChange >= 0 ? '+' : ''}{g.eloChange}
                   </span>
                 )}
-                <span style={{ color: colors.textMuted, fontSize: 12 }}>{formatDate(g.date)}</span>
+                <span style={{ color: colors.textDark, fontSize: 12 }}>{formatDate(g.date)}</span>
               </div>
             </div>
           ))}
@@ -122,16 +136,25 @@ function EloChart({ history }) {
     return `${x},${y}`;
   });
 
+  const areaPoints = [...points, `${padding + ((values.length - 1) / (values.length - 1)) * (width - 2 * padding)},${height - padding}`, `${padding},${height - padding}`].join(' ');
+
   return (
     <svg width={width} height={height} style={{ width: '100%', maxWidth: width }}>
-      <polyline fill="none" stroke={colors.accent} strokeWidth="2" points={points.join(' ')} />
+      <defs>
+        <linearGradient id="eloGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={colors.accent} stopOpacity="0.2" />
+          <stop offset="100%" stopColor={colors.accent} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon fill="url(#eloGrad)" points={areaPoints} />
+      <polyline fill="none" stroke={colors.accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={points.join(' ')} />
       {values.map((v, i) => {
         const x = padding + (i / (values.length - 1)) * (width - 2 * padding);
         const y = height - padding - ((v - min) / (max - min)) * (height - 2 * padding);
-        return <circle key={i} cx={x} cy={y} r={3} fill={colors.accent} />;
+        return <circle key={i} cx={x} cy={y} r={4} fill={colors.bgCard} stroke={colors.accent} strokeWidth="2" />;
       })}
-      <text x={padding} y={height - 5} fill={colors.textMuted} fontSize={10}>{min}</text>
-      <text x={padding} y={15} fill={colors.textMuted} fontSize={10}>{max}</text>
+      <text x={padding} y={height - 5} fill={colors.textDark} fontSize={10} fontFamily="Inter, sans-serif">{min}</text>
+      <text x={padding} y={15} fill={colors.textDark} fontSize={10} fontFamily="Inter, sans-serif">{max}</text>
     </svg>
   );
 }

@@ -1,28 +1,10 @@
-export const colors = {
-  bg: '#312e2b',
-  bgCard: '#272522',
-  bgDeep: '#1e1e1e',
-  bgHover: '#3a3733',
-  bgInput: '#1a1917',
-  accent: '#81b64c',
-  accentHover: '#6fa33e',
-  accentLight: 'rgba(129,182,76,0.15)',
-  text: '#e8e6e3',
-  textSecondary: '#a0a0a0',
-  textMuted: '#888',
-  textDark: '#555',
-  warning: '#f5c518',
-  error: '#e74c3c',
-  success: '#81b64c',
-  info: '#3498db',
-  border: '#3a3733',
-  borderLight: '#444',
-  white: '#fff',
-  black: '#000',
-  gold: '#ffd700',
-  silver: '#c0c0c0',
-  bronze: '#cd7f32',
-};
+// Static theme tokens - these are the dark theme defaults.
+// Components that need dynamic theming should use useTheme() from ThemeContext.
+// These static exports are kept for backwards compatibility with all existing components.
+
+import { darkTheme } from './themes';
+
+export const colors = darkTheme.colors;
 
 export const spacing = {
   xs: 4,
@@ -31,6 +13,7 @@ export const spacing = {
   lg: 24,
   xl: 32,
   xxl: 48,
+  xxxl: 64,
 };
 
 export const borderRadius = {
@@ -38,25 +21,30 @@ export const borderRadius = {
   md: 8,
   lg: 12,
   xl: 16,
+  xxl: 20,
   full: '50%',
 };
 
 export const typography = {
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  monoFamily: 'ui-monospace, Consolas, monospace',
-  h1: { fontSize: 32, fontWeight: 700 },
-  h2: { fontSize: 24, fontWeight: 600 },
-  h3: { fontSize: 20, fontWeight: 600 },
-  h4: { fontSize: 16, fontWeight: 600 },
-  body: { fontSize: 15, fontWeight: 400 },
-  small: { fontSize: 13, fontWeight: 400 },
-  tiny: { fontSize: 11, fontWeight: 400 },
+  fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  monoFamily: '"JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace',
+  h1: { fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2 },
+  h2: { fontSize: 24, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.3 },
+  h3: { fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.35 },
+  h4: { fontSize: 16, fontWeight: 600, lineHeight: 1.4 },
+  body: { fontSize: 15, fontWeight: 400, lineHeight: 1.6 },
+  small: { fontSize: 13, fontWeight: 400, lineHeight: 1.5 },
+  tiny: { fontSize: 11, fontWeight: 500, lineHeight: 1.4, letterSpacing: '0.02em' },
+  label: { fontSize: 12, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' },
 };
 
-export const shadows = {
-  sm: '0 2px 4px rgba(0,0,0,0.2)',
-  md: '0 4px 12px rgba(0,0,0,0.3)',
-  lg: '0 8px 32px rgba(0,0,0,0.4)',
+export const shadows = darkTheme.shadows;
+
+export const transitions = {
+  fast: '150ms cubic-bezier(0.4, 0, 0.2, 1)',
+  base: '200ms cubic-bezier(0.4, 0, 0.2, 1)',
+  slow: '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+  spring: '400ms cubic-bezier(0.34, 1.56, 0.64, 1)',
 };
 
 export const commonStyles = {
@@ -72,6 +60,15 @@ export const commonStyles = {
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     border: `1px solid ${colors.border}`,
+    transition: `border-color ${transitions.base}, box-shadow ${transitions.base}`,
+  },
+  cardHoverable: {
+    backgroundColor: colors.bgCard,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    border: `1px solid ${colors.border}`,
+    transition: `border-color ${transitions.base}, box-shadow ${transitions.base}, transform ${transitions.base}`,
+    cursor: 'pointer',
   },
   button: {
     padding: '10px 20px',
@@ -83,7 +80,8 @@ export const commonStyles = {
     fontWeight: 600,
     cursor: 'pointer',
     fontFamily: typography.fontFamily,
-    transition: 'background-color 0.2s',
+    transition: `background-color ${transitions.fast}, transform ${transitions.fast}, box-shadow ${transitions.fast}`,
+    outline: 'none',
   },
   buttonSecondary: {
     padding: '10px 20px',
@@ -92,8 +90,11 @@ export const commonStyles = {
     border: `1px solid ${colors.borderLight}`,
     borderRadius: borderRadius.md,
     fontSize: 14,
+    fontWeight: 500,
     cursor: 'pointer',
     fontFamily: typography.fontFamily,
+    transition: `color ${transitions.fast}, border-color ${transitions.fast}, background-color ${transitions.fast}`,
+    outline: 'none',
   },
   input: {
     width: '100%',
@@ -106,10 +107,12 @@ export const commonStyles = {
     fontFamily: typography.fontFamily,
     boxSizing: 'border-box',
     outline: 'none',
+    transition: `border-color ${transitions.fast}, box-shadow ${transitions.fast}`,
   },
   link: {
     color: colors.accent,
     textDecoration: 'none',
     cursor: 'pointer',
+    transition: `color ${transitions.fast}`,
   },
 };

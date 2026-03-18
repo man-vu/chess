@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/common/Avatar';
 import { getItem, setItem } from '../utils/storage';
 import { formatTimeAgo } from '../utils/formatters';
-import { colors, commonStyles, spacing, borderRadius } from '../theme';
+import { colors, commonStyles, spacing, borderRadius, shadows, transitions } from '../theme';
 import { v4 as uuidv4 } from 'uuid';
 
 const BOT_MESSAGES = [
@@ -26,13 +26,8 @@ export default function Chat() {
   const [onlineCount] = useState(Math.floor(Math.random() * 50) + 20);
   const messagesEndRef = useRef(null);
 
-  useEffect(() => {
-    setMessages(getItem('chess_chat_messages', []));
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { setMessages(getItem('chess_chat_messages', [])); }, []);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,11 +40,7 @@ export default function Chat() {
         author: { id: bot.id, username: bot.username },
         date: new Date().toISOString(),
       };
-      setMessages((prev) => {
-        const updated = [...prev, msg];
-        setItem('chess_chat_messages', updated.slice(-100));
-        return updated;
-      });
+      setMessages((prev) => { const updated = [...prev, msg]; setItem('chess_chat_messages', updated.slice(-100)); return updated; });
     }, 8000 + Math.random() * 12000);
     return () => clearInterval(interval);
   }, []);
@@ -63,50 +54,62 @@ export default function Chat() {
       author: { id: currentUser.id, username: currentUser.username },
       date: new Date().toISOString(),
     };
-    setMessages((prev) => {
-      const updated = [...prev, msg];
-      setItem('chess_chat_messages', updated.slice(-100));
-      return updated;
-    });
+    setMessages((prev) => { const updated = [...prev, msg]; setItem('chess_chat_messages', updated.slice(-100)); return updated; });
     setInput('');
   };
 
   return (
     <div style={commonStyles.page}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-        <h1 style={{ color: colors.text, margin: 0 }}>Global Chat</h1>
-        <span style={{ color: colors.accent, fontSize: 14 }}>{onlineCount} online</span>
+        <h1 style={{ color: colors.text, margin: 0, fontWeight: 800, letterSpacing: '-0.02em' }}>Global Chat</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing.xs }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: colors.accent, animation: 'glowPulse 2s ease-in-out infinite' }} />
+          <span style={{ color: colors.accent, fontSize: 14, fontWeight: 600 }}>{onlineCount} online</span>
+        </div>
       </div>
-      <div style={{ ...commonStyles.card, display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)' }}>
+      <div style={{
+        ...commonStyles.card,
+        display: 'flex', flexDirection: 'column', height: 'calc(100vh - 200px)',
+        padding: 0, overflow: 'hidden',
+      }}>
         <div style={{ flex: 1, overflowY: 'auto', padding: spacing.md }}>
           {messages.map((msg) => {
             const isOwn = currentUser && msg.author.id === currentUser.id;
             const isSystem = msg.author.username === 'System';
             return (
-              <div key={msg.id} style={{ display: 'flex', gap: spacing.sm, marginBottom: spacing.md, alignItems: 'flex-start' }}>
+              <div key={msg.id} style={{
+                display: 'flex', gap: spacing.sm, marginBottom: spacing.md, alignItems: 'flex-start',
+                animation: 'fadeIn 200ms ease',
+              }}>
                 {!isSystem && <Avatar username={msg.author.username} size={28} />}
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, marginBottom: 2 }}>
-                    <span style={{ color: isSystem ? colors.textMuted : isOwn ? colors.accent : colors.text, fontWeight: 600, fontSize: 13 }}>
+                    <span style={{ color: isSystem ? colors.textDark : isOwn ? colors.accent : colors.text, fontWeight: 600, fontSize: 13 }}>
                       {msg.author.username}
                     </span>
-                    <span style={{ color: colors.textMuted, fontSize: 11 }}>{formatTimeAgo(msg.date)}</span>
+                    <span style={{ color: colors.textDark, fontSize: 11 }}>{formatTimeAgo(msg.date)}</span>
                   </div>
-                  <p style={{ color: isSystem ? colors.textMuted : colors.textSecondary, margin: 0, fontSize: 14, lineHeight: 1.4 }}>{msg.content}</p>
+                  <p style={{ color: isSystem ? colors.textDark : colors.textSecondary, margin: 0, fontSize: 14, lineHeight: 1.5 }}>{msg.content}</p>
                 </div>
               </div>
             );
           })}
           <div ref={messagesEndRef} />
         </div>
-        <div style={{ borderTop: `1px solid ${colors.border}`, padding: spacing.md }}>
+        <div style={{ borderTop: `1px solid ${colors.border}`, padding: spacing.md, backgroundColor: colors.bgDeep }}>
           {currentUser ? (
             <form onSubmit={sendMessage} style={{ display: 'flex', gap: spacing.sm }}>
-              <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message..." style={{ ...commonStyles.input, flex: 1 }} />
-              <button type="submit" style={commonStyles.button}>Send</button>
+              <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type a message..." style={{ ...commonStyles.input, flex: 1 }}
+                onFocus={(e) => { e.target.style.borderColor = colors.borderFocus; }}
+                onBlur={(e) => { e.target.style.borderColor = colors.borderLight; }}
+              />
+              <button type="submit" style={{
+                ...commonStyles.button,
+                background: `linear-gradient(135deg, ${colors.accent}, ${colors.accentHover})`,
+              }}>Send</button>
             </form>
           ) : (
-            <p style={{ color: colors.textMuted, textAlign: 'center', margin: 0, fontSize: 14 }}>Sign in to chat</p>
+            <p style={{ color: colors.textDark, textAlign: 'center', margin: 0, fontSize: 14 }}>Sign in to chat</p>
           )}
         </div>
       </div>
