@@ -1,0 +1,57 @@
+export const mockTournaments = [
+  {
+    id: 'tourney-1', name: 'Spring Open 2026', format: 'Swiss', rounds: 7,
+    startDate: '2026-04-01', endDate: '2026-04-03', status: 'upcoming',
+    eloRange: [0, 9999], participants: 45, maxParticipants: 64,
+    description: 'Open to all players. 7-round Swiss system with 15+10 time control.',
+    registeredIds: ['bot-1', 'bot-3', 'bot-5', 'bot-7', 'bot-10'],
+  },
+  {
+    id: 'tourney-2', name: 'Beginner Blitz Arena', format: 'Arena', rounds: null,
+    startDate: '2026-03-20', endDate: '2026-03-20', status: 'upcoming',
+    eloRange: [0, 1400], participants: 28, maxParticipants: 32,
+    description: '1-hour arena for players rated under 1400. 3+0 time control.',
+    registeredIds: ['bot-13', 'bot-14', 'bot-15', 'bot-19', 'bot-24'],
+  },
+  {
+    id: 'tourney-3', name: 'Masters Invitational', format: 'Round Robin', rounds: 9,
+    startDate: '2026-03-18', endDate: '2026-03-25', status: 'active',
+    eloRange: [2000, 9999], participants: 10, maxParticipants: 10,
+    description: 'Elite round-robin tournament for 2000+ rated players.',
+    registeredIds: ['bot-1', 'bot-2', 'bot-3', 'bot-16', 'bot-18', 'bot-25'],
+    standings: [
+      { playerId: 'bot-1', points: 4.5, played: 6 },
+      { playerId: 'bot-25', points: 4, played: 6 },
+      { playerId: 'bot-2', points: 3.5, played: 6 },
+      { playerId: 'bot-16', points: 3, played: 6 },
+      { playerId: 'bot-3', points: 2.5, played: 5 },
+      { playerId: 'bot-18', points: 2, played: 5 },
+    ],
+  },
+  {
+    id: 'tourney-4', name: 'February Rapid Championship', format: 'Swiss', rounds: 5,
+    startDate: '2026-02-15', endDate: '2026-02-16', status: 'completed',
+    eloRange: [0, 9999], participants: 52, maxParticipants: 64,
+    description: 'Monthly rapid championship. 10+5 time control.',
+    registeredIds: [],
+    standings: [
+      { playerId: 'bot-1', points: 4.5, played: 5 },
+      { playerId: 'bot-25', points: 4, played: 5 },
+      { playerId: 'bot-2', points: 3.5, played: 5 },
+    ],
+  },
+  {
+    id: 'tourney-5', name: 'Club Championship 2026', format: 'Swiss', rounds: 9,
+    startDate: '2026-05-01', endDate: '2026-05-15', status: 'upcoming',
+    eloRange: [1200, 9999], participants: 12, maxParticipants: 32,
+    description: 'Annual club championship. Classical time control 90+30.',
+    registeredIds: ['bot-4', 'bot-6', 'bot-8'],
+  },
+  {
+    id: 'tourney-6', name: 'Weekend Warrior Blitz', format: 'Arena', rounds: null,
+    startDate: '2026-03-22', endDate: '2026-03-22', status: 'upcoming',
+    eloRange: [0, 9999], participants: 67, maxParticipants: 128,
+    description: '2-hour blitz arena. 3+2 time control. Open to everyone.',
+    registeredIds: ['bot-7', 'bot-10', 'bot-12', 'bot-17', 'bot-20'],
+  },
+];
