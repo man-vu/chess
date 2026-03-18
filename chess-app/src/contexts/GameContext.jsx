@@ -19,8 +19,9 @@ export function GameProvider({ children }) {
         const user = { ...users[idx] };
         user.gamesPlayed += 1;
         const resultScore = gameData.result === 'win' ? 1 : gameData.result === 'loss' ? 0 : 0.5;
-        const eloChange = calculateEloChange(user.elo, gameData.opponentElo || 1200, resultScore);
+        const eloChange = calculateEloChange(user.elo, gameData.opponentElo || 1200, resultScore, user.gamesPlayed, user.peakElo || user.elo);
         user.elo = Math.max(100, user.elo + eloChange);
+        if (!user.peakElo || user.elo > user.peakElo) user.peakElo = user.elo;
         if (gameData.result === 'win') user.wins += 1;
         else if (gameData.result === 'loss') user.losses += 1;
         else user.draws += 1;

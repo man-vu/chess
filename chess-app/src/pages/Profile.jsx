@@ -1,18 +1,18 @@
 import { useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useGameContext } from '../contexts/GameContext';
 import Avatar from '../components/common/Avatar';
 import Badge from '../components/common/Badge';
 import StatCard from '../components/common/StatCard';
 import { getItem } from '../utils/storage';
-import { getEloTier } from '../utils/elo';
+import { getEloTier, getFideTitle } from '../utils/elo';
 import { formatDate, getWinRate } from '../utils/formatters';
 import { colors, commonStyles, spacing, shadows, transitions } from '../theme';
 
 export default function Profile() {
   const { userId } = useParams();
-  const { currentUser, updateProfile } = useAuth();
+  const { currentUser, updateProfile, addFriend, removeFriend, isFriend } = useAuth();
   const { getGames } = useGameContext();
   const [editingBio, setEditingBio] = useState(false);
   const [bio, setBio] = useState('');
@@ -34,8 +34,10 @@ export default function Profile() {
   }
 
   const tier = getEloTier(user.elo);
+  const fideTitle = getFideTitle(user.elo, user.gamesPlayed || 0);
   const totalGames = user.gamesPlayed || 0;
   const eloHistory = user.eloHistory || [];
+  const isFriendOfUser = !isOwn && currentUser && isFriend(userId);
 
   const startEditBio = () => { setBio(user.bio || ''); setEditingBio(true); };
   const saveBio = () => { updateProfile({ bio }); setEditingBio(false); };
@@ -51,10 +53,34 @@ export default function Profile() {
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, marginBottom: 4 }}>
             <h1 style={{ color: colors.text, fontSize: 28, margin: 0, fontWeight: 800, letterSpacing: '-0.02em' }}>{user.username}</h1>
+            {fideTitle && (
+              <span style={{
+                color: '#fff', fontWeight: 700, fontSize: 12, padding: '3px 8px',
+                backgroundColor: fideTitle.color, borderRadius: 4, letterSpacing: '0.03em',
+              }}>{fideTitle.code}</span>
+            )}
             <Badge text={tier.name} color={tier.color} />
           </div>
-          <div style={{ color: colors.accent, fontSize: 24, fontWeight: 700, marginBottom: 4 }}>{user.elo} ELO</div>
-          <div style={{ color: colors.textDark, fontSize: 13 }}>Member since {formatDate(user.joinedAt)}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md, marginBottom: 4 }}>
+            <span style={{ color: colors.accent, fontSize: 24, fontWeight: 700 }}>{user.elo} ELO</span>
+            {fideTitle && <span style={{ color: colors.textSecondary, fontSize: 14 }}>{fideTitle.name}</span>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
+            <span style={{ color: colors.textDark, fontSize: 13 }}>Member since {formatDate(user.joinedAt)}</span>
+            {!isOwn && currentUser && (
+              <button
+                onClick={() => isFriendOfUser ? removeFriend(userId) : addFriend(userId)}
+                style={{
+                  ...commonStyles.buttonSecondary,
+                  padding: '4px 12px', fontSize: 12,
+                  color: isFriendOfUser ? colors.error : colors.accent,
+                  borderColor: isFriendOfUser ? `${colors.error}40` : `${colors.accent}40`,
+                }}
+              >
+                {isFriendOfUser ? 'Remove Friend' : 'Add Friend'}
+              </button>
+            )}
+          </div>
           {editingBio ? (
             <div style={{ marginTop: spacing.sm, display: 'flex', gap: spacing.sm }}>
               <input value={bio} onChange={(e) => setBio(e.target.value)} style={{ ...commonStyles.input, flex: 1 }} placeholder="Write something about yourself..."
@@ -83,6 +109,10 @@ export default function Profile() {
         <StatCard label="Draws" value={user.draws || 0} color={colors.warning} />
         <StatCard label="Win Rate" value={getWinRate(user.wins || 0, totalGames)} color={colors.info} />
       </div>
+
+      {isOwn && (currentUser.friends || []).length > 0 && (
+        <FriendsList friendIds={currentUser.friends} />
+      )}
 
       {eloHistory.length > 1 && (
         <div style={{ ...commonStyles.card, marginBottom: spacing.lg }}>
@@ -118,6 +148,45 @@ export default function Profile() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function FriendsList({ friendIds }) {
+  const allPlayers = [...getItem('chess_players', []), ...getItem('chess_users', [])];
+  const friends = friendIds.map((id) => allPlayers.find((p) => p.id === id)).filter(Boolean);
+  if (friends.length === 0) return null;
+  return (
+    <div style={{ ...commonStyles.card, marginBottom: spacing.lg }}>
+      <h3 style={{ color: colors.text, marginTop: 0, marginBottom: spacing.md, fontWeight: 600 }}>
+        Friends ({friends.length})
+      </h3>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: spacing.sm }}>
+        {friends.map((f) => {
+          const t = getEloTier(f.elo);
+          const title = getFideTitle(f.elo, f.gamesPlayed || 0);
+          return (
+            <Link key={f.id} to={`/profile/${f.id}`} style={{
+              display: 'flex', alignItems: 'center', gap: spacing.sm,
+              padding: '8px 14px', backgroundColor: colors.bgDeep, borderRadius: 8,
+              textDecoration: 'none', border: `1px solid ${colors.border}`,
+              transition: `border-color ${transitions.fast}`,
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.border; }}
+            >
+              <Avatar username={f.username} size={28} />
+              <div>
+                <div style={{ color: colors.text, fontWeight: 500, fontSize: 13 }}>
+                  {title && <span style={{ color: title.color, fontWeight: 700, marginRight: 4 }}>{title.code}</span>}
+                  {f.username}
+                </div>
+                <div style={{ color: colors.textDark, fontSize: 11 }}>{f.elo} · {t.name}</div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
     </div>
   );
 }

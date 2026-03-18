@@ -4,7 +4,7 @@ import obfuscatorPlugin from 'rollup-plugin-obfuscator'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/chess/',
+  base: mode === 'production' ? '/chess/' : '/',
   plugins: [react()],
   server: {
     headers: {

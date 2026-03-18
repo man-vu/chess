@@ -919,6 +919,88 @@ test.describe('23a. Play Local – Enhanced Features', () => {
 // 23. CROSS-FEATURE: NAVIGATION FLOW
 // ════════════════════════════════════════════════════════════════════════════════
 
+// ════════════════════════════════════════════════════════════════════════════════
+// 23b. FIDE ELO, TITLES & FRIENDS
+// ════════════════════════════════════════════════════════════════════════════════
+
+test.describe('23b. FIDE Elo, Titles & Friends', () => {
+  test('leaderboard shows FIDE title column with titled players', async ({ page }) => {
+    await go(page, '/leaderboard');
+    // Title column header exists
+    await expect(page.getByText('Title').first()).toBeVisible();
+    // GrandMaster_X (2450, 1243 games) should have IM title
+    await expect(page.getByText('IM').first()).toBeVisible();
+    // ZugzwangZen (2280, 834 games) should have CM title
+    await expect(page.getByText('CM').first()).toBeVisible();
+    // Lower-rated players show dash
+    const dashes = await page.getByText('—').count();
+    expect(dashes).toBeGreaterThan(0);
+  });
+
+  test('leaderboard shows updated tier names matching FIDE system', async ({ page }) => {
+    await go(page, '/leaderboard');
+    // Top player should show "International Master" tier badge
+    await expect(page.getByText('International Master').first()).toBeVisible();
+    // 2300+ should show "FIDE Master"
+    await expect(page.getByText('FIDE Master').first()).toBeVisible();
+    // 2200+ should show "Candidate Master"
+    await expect(page.getByText('Candidate Master').first()).toBeVisible();
+  });
+
+  test('profile page shows FIDE title for titled players', async ({ page }) => {
+    // Navigate to GrandMaster_X's profile (elo 2450, should be IM)
+    await go(page, '/profile/bot-1');
+    await expect(page.getByText('GrandMaster_X')).toBeVisible();
+    await expect(page.getByText('IM')).toBeVisible();
+    await expect(page.getByText('International Master').first()).toBeVisible();
+  });
+
+  test('untitled player profile shows tier but no FIDE title', async ({ page }) => {
+    // KnightRider (2180, Expert) — no FIDE title
+    await go(page, '/profile/bot-3');
+    await expect(page.getByText('KnightRider')).toBeVisible();
+    await expect(page.getByText('Expert')).toBeVisible();
+  });
+
+  test('friend button appears on other profiles when logged in', async ({ page }) => {
+    await signup(page, 'FriendTester', 'friend@test.com');
+    await page.goto('/profile/bot-1');
+    await page.waitForSelector('nav');
+    await expect(page.getByRole('button', { name: 'Add Friend' })).toBeVisible();
+  });
+
+  test('can add and remove a friend', async ({ page }) => {
+    await signup(page, 'FriendUser', 'frienduser@test.com');
+    await page.goto('/profile/bot-1');
+    await page.waitForSelector('nav');
+    // Add friend
+    await page.getByRole('button', { name: 'Add Friend' }).click();
+    await page.waitForTimeout(300);
+    // Button should change to "Remove Friend"
+    await expect(page.getByRole('button', { name: 'Remove Friend' })).toBeVisible();
+    // Remove friend
+    await page.getByRole('button', { name: 'Remove Friend' }).click();
+    await page.waitForTimeout(300);
+    // Back to "Add Friend"
+    await expect(page.getByRole('button', { name: 'Add Friend' })).toBeVisible();
+  });
+
+  test('friend button not shown on own profile', async ({ page }) => {
+    await signup(page, 'SelfUser', 'self@test.com');
+    // Get the user ID from localStorage
+    const userId = await page.evaluate(() => {
+      const user = JSON.parse(localStorage.getItem('chess_current_user'));
+      return user?.id;
+    });
+    await page.goto(`/profile/${userId}`);
+    await page.waitForSelector('nav');
+    // Should show Edit Bio, not Add Friend
+    await expect(page.getByRole('button', { name: 'Edit Bio' })).toBeVisible();
+    const addFriendBtn = page.getByRole('button', { name: 'Add Friend' });
+    await expect(addFriendBtn).not.toBeVisible();
+  });
+});
+
 test.describe('23. Cross-Feature Navigation', () => {
   test('full user journey: signup → play → history → achievements', async ({ page }) => {
     // Step 1: Signup

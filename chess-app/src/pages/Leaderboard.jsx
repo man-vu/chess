@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/common/Avatar';
 import Badge from '../components/common/Badge';
 import { getItem } from '../utils/storage';
-import { getEloTier } from '../utils/elo';
+import { getEloTier, getFideTitle } from '../utils/elo';
 import { getWinRate } from '../utils/formatters';
 import { colors, commonStyles, spacing, transitions } from '../theme';
 
@@ -32,6 +32,7 @@ export default function Leaderboard() {
         }}>
           <div style={{ width: 50 }}>#</div>
           <div style={{ flex: 1 }}>Player</div>
+          <div style={{ width: 60, textAlign: 'center' }}>Title</div>
           <div style={{ width: 100, textAlign: 'right' }}>ELO</div>
           <div style={{ width: 80, textAlign: 'right' }}>W/L/D</div>
           <div style={{ width: 80, textAlign: 'right' }}>Games</div>
@@ -39,6 +40,7 @@ export default function Leaderboard() {
         </div>
         {players.map((player, idx) => {
           const tier = getEloTier(player.elo);
+          const fideTitle = getFideTitle(player.elo, player.gamesPlayed || 0);
           const isCurrentUser = currentUser && player.id === currentUser.id;
           return (
             <div
@@ -65,6 +67,13 @@ export default function Leaderboard() {
                 </Link>
                 <Badge text={tier.name} color={tier.color} style={{ fontSize: 10 }} />
                 {isCurrentUser && <span style={{ fontSize: 11, color: colors.accent, fontWeight: 700, padding: '2px 6px', backgroundColor: colors.accentLight, borderRadius: 4 }}>YOU</span>}
+              </div>
+              <div style={{ width: 60, textAlign: 'center' }}>
+                {fideTitle ? (
+                  <span style={{ color: fideTitle.color, fontWeight: 700, fontSize: 13, padding: '2px 6px', backgroundColor: `${fideTitle.color}15`, borderRadius: 4 }}>{fideTitle.code}</span>
+                ) : (
+                  <span style={{ color: colors.textDark, fontSize: 12 }}>—</span>
+                )}
               </div>
               <div style={{ width: 100, textAlign: 'right', color: colors.accent, fontWeight: 700 }}>{player.elo}</div>
               <div style={{ width: 80, textAlign: 'right', color: colors.textSecondary, fontSize: 13 }}>{player.wins || 0}/{player.losses || 0}/{player.draws || 0}</div>

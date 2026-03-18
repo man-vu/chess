@@ -38,6 +38,8 @@ export function AuthProvider({ children }) {
       draws: 0,
       joinedAt: new Date().toISOString(),
       bio: '',
+      friends: [],
+      peakElo: 1200,
       eloHistory: [{ date: new Date().toISOString(), elo: 1200 }],
     };
     users.push(newUser);
@@ -78,8 +80,35 @@ export function AuthProvider({ children }) {
     if (user) setCurrentUser(user);
   }, [currentUser]);
 
+  const addFriend = useCallback((friendId) => {
+    if (!currentUser) return;
+    const users = getItem('chess_users', []);
+    const idx = users.findIndex((u) => u.id === currentUser.id);
+    if (idx === -1) return;
+    const friends = users[idx].friends || [];
+    if (friends.includes(friendId)) return;
+    users[idx].friends = [...friends, friendId];
+    setItem('chess_users', users);
+    setCurrentUser({ ...users[idx] });
+  }, [currentUser]);
+
+  const removeFriend = useCallback((friendId) => {
+    if (!currentUser) return;
+    const users = getItem('chess_users', []);
+    const idx = users.findIndex((u) => u.id === currentUser.id);
+    if (idx === -1) return;
+    users[idx].friends = (users[idx].friends || []).filter((id) => id !== friendId);
+    setItem('chess_users', users);
+    setCurrentUser({ ...users[idx] });
+  }, [currentUser]);
+
+  const isFriend = useCallback((userId) => {
+    if (!currentUser) return false;
+    return (currentUser.friends || []).includes(userId);
+  }, [currentUser]);
+
   return (
-    <AuthContext.Provider value={{ currentUser, isAuthenticated: !!currentUser, loading, signup, login, logout, updateProfile, refreshUser }}>
+    <AuthContext.Provider value={{ currentUser, isAuthenticated: !!currentUser, loading, signup, login, logout, updateProfile, refreshUser, addFriend, removeFriend, isFriend }}>
       {children}
     </AuthContext.Provider>
   );
