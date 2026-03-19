@@ -271,16 +271,20 @@ export default function Puzzles() {
     if (solvedRef.current || showingSolutionRef.current || g.isGameOver()) return;
     if (!isPlayerTurn()) return;
 
-    if (selectedSquare) {
-      if (sq === selectedSquare) {
-        setSelectedSquare(null);
-        setLegalMoves([]);
+    if (selectedSquare && selectedSquare !== sq) {
+      // Switch selection if clicking another friendly piece
+      const turn = g.turn();
+      const targetPiece = g.get(sq);
+      if (targetPiece && targetPiece.color === turn && !legalMoves.includes(sq)) {
+        setSelectedSquare(sq);
+        setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to));
         return;
       }
       if (legalMoves.includes(sq)) {
         tryPlayerMove(selectedSquare, sq);
         return;
       }
+      setSelectedSquare(null); setLegalMoves([]); return;
     }
 
     const piece = g.get(sq);

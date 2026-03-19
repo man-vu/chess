@@ -187,7 +187,14 @@ export default function PlayAI() {
     }
 
     // ── NORMAL MODE: my turn ──
-    if (selectedSquare) {
+    if (selectedSquare && selectedSquare !== sq) {
+      // Switch selection if clicking another friendly piece
+      const targetPiece = g.get(sq);
+      if (targetPiece && targetPiece.color === playerColor) {
+        setSelectedSquare(sq);
+        setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to));
+        return;
+      }
       const piece = g.get(selectedSquare);
       const isPromotion = piece && piece.type === 'p' && ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
       if (isPromotion && legalMoves.includes(sq)) {
@@ -201,6 +208,7 @@ export default function PlayAI() {
         if (!next.isGameOver()) setTimeout(() => makeStockfishMove(next), 300);
         return;
       }
+      setSelectedSquare(null); setLegalMoves([]); return;
     }
     const piece = g.get(sq);
     if (piece && piece.color === playerColor) {

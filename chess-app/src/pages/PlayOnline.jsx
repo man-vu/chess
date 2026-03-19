@@ -148,7 +148,11 @@ export default function PlayOnline() {
       return;
     }
 
-    if (selectedSquare) {
+    if (selectedSquare && selectedSquare !== sq) {
+      const targetPiece = g.get(sq);
+      if (targetPiece && targetPiece.color === playerColor) {
+        setSelectedSquare(sq); setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to)); return;
+      }
       const piece = g.get(selectedSquare);
       const isPromotion = piece && piece.type === 'p' && sq[1] === '8';
       if (isPromotion && legalMoves.includes(sq)) { setPendingPromotion({ from: selectedSquare, to: sq }); setSelectedSquare(null); setLegalMoves([]); return; }
@@ -157,6 +161,7 @@ export default function PlayOnline() {
         if (!next.isGameOver()) setTimeout(() => makeOpponentMove(next), 300);
         return;
       }
+      setSelectedSquare(null); setLegalMoves([]); return;
     }
     const piece = g.get(sq);
     if (piece && piece.color === playerColor) { setSelectedSquare(sq); setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to)); }

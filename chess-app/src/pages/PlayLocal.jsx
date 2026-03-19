@@ -52,9 +52,14 @@ export default function PlayLocal() {
     const g = gameRef.current;
     if (g.isGameOver()) return;
     const turn = g.turn();
-    if (selectedSquare) {
-      const piece = g.get(selectedSquare);
-      const isPromotion = piece && piece.type === 'p' && ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
+    if (selectedSquare && selectedSquare !== sq) {
+      const selectedPiece = g.get(selectedSquare);
+      const targetPiece = g.get(sq);
+      // Switch selection if clicking another friendly piece
+      if (selectedPiece && targetPiece && targetPiece.color === turn) {
+        setSelectedSquare(sq); setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to)); return;
+      }
+      const isPromotion = selectedPiece && selectedPiece.type === 'p' && ((selectedPiece.color === 'w' && sq[1] === '8') || (selectedPiece.color === 'b' && sq[1] === '1'));
       if (isPromotion && legalMoves.includes(sq)) { setPendingPromotion({ from: selectedSquare, to: sq }); setSelectedSquare(null); setLegalMoves([]); return; }
       const move = g.move({ from: selectedSquare, to: sq });
       if (move) {
@@ -63,6 +68,7 @@ export default function PlayLocal() {
         setGame(next); setLastMove({ from: selectedSquare, to: sq }); setMoveHistory(history);
         setSelectedSquare(null); setLegalMoves([]); updateStatus(next); playSoundForMove(next, move); return;
       }
+      setSelectedSquare(null); setLegalMoves([]); return;
     }
     const piece = g.get(sq);
     if (piece && piece.color === turn) { setSelectedSquare(sq); setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to)); }

@@ -286,7 +286,13 @@ export default function PlayMultiplayer() {
     }
 
     // ── NORMAL MODE ──
-    if (selectedSquare) {
+    if (selectedSquare && selectedSquare !== sq) {
+      const targetPiece = g.get(sq);
+      if (targetPiece && targetPiece.color === playerColor) {
+        setSelectedSquare(sq);
+        setLegalMoves(g.moves({ square: sq, verbose: true }).map((m) => m.to));
+        return;
+      }
       const piece = g.get(selectedSquare);
       const isPromotion = piece && piece.type === 'p' &&
         ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
@@ -314,6 +320,7 @@ export default function PlayMultiplayer() {
         });
         return;
       }
+      setSelectedSquare(null); setLegalMoves([]); return;
     }
 
     const piece = g.get(sq);
