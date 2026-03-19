@@ -222,7 +222,7 @@ export default function PlayOnline() {
 
   return (
     <div style={{ ...commonStyles.page, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <div>
           <div style={{
             display: 'flex', alignItems: 'center', gap: spacing.sm, padding: '10px 12px',

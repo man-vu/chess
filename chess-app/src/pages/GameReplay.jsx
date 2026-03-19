@@ -66,7 +66,7 @@ export default function GameReplay() {
       <h2 style={{ color: colors.text, marginBottom: spacing.md, fontWeight: 600, letterSpacing: '-0.01em' }}>
         Game Replay: vs {game.opponentName}
       </h2>
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <div>
           <Board game={currentChess} selectedSquare={null} legalMoves={[]} lastMove={null} onSquareClick={() => {}} onDragMove={() => {}} flipped={game.playerColor === 'b'} />
           <div style={{ display: 'flex', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.md }}>

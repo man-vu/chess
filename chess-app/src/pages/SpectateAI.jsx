@@ -293,7 +293,7 @@ export default function SpectateAI() {
         {openingName && <span style={{ color: colors.textMuted, fontSize: 13, fontStyle: 'italic' }}>· {openingName}</span>}
       </div>
 
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <EvalBar evaluation={evalFromWhite} depth={evalResult.depth} />
         <div>
           {/* Top player label */}

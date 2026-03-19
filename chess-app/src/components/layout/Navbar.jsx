@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Avatar from '../common/Avatar';
@@ -17,6 +18,7 @@ export default function Navbar() {
   const { currentUser, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <nav style={{
@@ -186,6 +188,69 @@ export default function Navbar() {
           </>
         )}
       </div>
+
+      {/* Mobile hamburger button — visible only when nav-links is hidden */}
+      <button
+        className="nav-hamburger"
+        onClick={() => setMobileMenuOpen((o) => !o)}
+        aria-label="Menu"
+        style={{
+          display: 'none', // shown via CSS media query
+          background: 'none',
+          border: `1px solid ${colors.borderLight}`,
+          color: colors.text,
+          borderRadius: 6,
+          padding: '6px 8px',
+          cursor: 'pointer',
+          fontSize: 18,
+          lineHeight: 1,
+        }}
+      >
+        {mobileMenuOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile dropdown menu */}
+      {mobileMenuOpen && (
+        <div
+          className="nav-mobile-menu"
+          style={{
+            position: 'absolute',
+            top: 60,
+            left: 0,
+            right: 0,
+            backgroundColor: colors.bgDeep,
+            borderBottom: `1px solid ${colors.border}`,
+            padding: spacing.md,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            zIndex: 100,
+            boxShadow: shadows.lg,
+          }}
+        >
+          {NAV_LINKS.map((link) => {
+            const isActive = location.pathname === link.to || location.pathname.startsWith(link.to + '/');
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setMobileMenuOpen(false)}
+                style={{
+                  color: isActive ? colors.accent : colors.text,
+                  textDecoration: 'none',
+                  fontSize: 15,
+                  fontWeight: isActive ? 600 : 500,
+                  padding: '10px 14px',
+                  borderRadius: 8,
+                  backgroundColor: isActive ? `${colors.accent}15` : 'transparent',
+                }}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </nav>
   );
 }

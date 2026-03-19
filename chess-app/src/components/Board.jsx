@@ -1,12 +1,27 @@
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { FILES, RANKS } from '../constants';
 import Square from './Square';
 
-const BORDER_COLOR = '#302e2b';
 const LABEL_BG = '#262421';
 const LABEL_COLOR = '#9e9e9e';
-const SQUARE_SIZE = 72;
+const DEFAULT_SQUARE_SIZE = 72;
 const PREMOVE_ARROW_COLOR = 'rgba(168, 85, 247, 0.65)';
+
+function useResponsiveSquareSize(containerRef, maxSize = DEFAULT_SQUARE_SIZE) {
+  const [size, setSize] = useState(maxSize);
+  useEffect(() => {
+    const update = () => {
+      const vw = window.innerWidth;
+      // Reserve 22px for rank labels, 32px for page padding each side
+      const available = Math.min(vw - 22 - 32, maxSize * 8);
+      setSize(Math.max(32, Math.min(maxSize, Math.floor(available / 8))));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, [maxSize]);
+  return size;
+}
 
 /**
  * Convert algebraic square (e.g. "e4") to pixel center coords on the board.
@@ -38,6 +53,8 @@ export default function Board({
   themeColors,
   moveEvals, // Map<square, { display, color }> for showing eval on legal move squares
 }) {
+  const boardRef = useRef(null);
+  const SQUARE_SIZE = useResponsiveSquareSize(boardRef);
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
   const pmSquares = premoveSquares || new Set();
@@ -60,7 +77,7 @@ export default function Board({
   const boardHeight = SQUARE_SIZE * 8;
 
   return (
-    <div style={{
+    <div ref={boardRef} style={{
       display: 'inline-block',
       borderRadius: 4,
       overflow: 'hidden',

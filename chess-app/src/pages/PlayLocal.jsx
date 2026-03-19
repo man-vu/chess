@@ -156,7 +156,7 @@ export default function PlayLocal() {
         <h2 style={{ color: colors.text, fontWeight: 600, letterSpacing: '-0.01em', margin: 0 }}>Local Game</h2>
         {openingName && <span style={{ color: colors.textMuted, fontSize: 13, fontStyle: 'italic' }}>{openingName}</span>}
       </div>
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' }}>
             <span style={{ color: colors.textSecondary, fontSize: 14, fontWeight: 500 }}>{topColor}</span>

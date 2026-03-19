@@ -438,7 +438,7 @@ export default function AnalysisBoard() {
         Analysis Board
       </h2>
 
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         {/* Eval Bar */}
         <EvalBar evaluation={evalFromWhite} depth={depth} />
 

@@ -22,7 +22,7 @@ export default function Leaderboard() {
   return (
     <div style={commonStyles.page}>
       <h1 style={{ color: colors.text, marginBottom: spacing.lg, fontWeight: 800, letterSpacing: '-0.02em' }}>Leaderboard</h1>
-      <div style={{ ...commonStyles.card, overflow: 'hidden', padding: 0 }}>
+      <div className="leaderboard-table" style={{ ...commonStyles.card, overflow: 'hidden', padding: 0 }}>
         <div style={{
           display: 'flex', padding: '14px 20px',
           borderBottom: `2px solid ${colors.border}`,

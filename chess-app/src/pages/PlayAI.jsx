@@ -365,7 +365,7 @@ export default function PlayAI() {
           <span style={{ color: colors.textMuted, fontSize: 13, fontStyle: 'italic' }}>{openingName}</span>
         )}
       </div>
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <EvalBar evaluation={evalFromWhite} depth={evalResult.depth} />
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.sm, padding: '8px 4px', fontSize: 14, fontWeight: 500, color: colors.textSecondary }}>

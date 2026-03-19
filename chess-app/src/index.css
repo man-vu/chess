@@ -138,76 +138,50 @@ body {
 
 /* ===== MOBILE RESPONSIVE ===== */
 
-/* Tablet: 768px */
-@media (max-width: 768px) {
-  /* Board squares shrink */
-  .board-square {
-    width: 44px !important;
-    height: 44px !important;
-  }
-  .board-square .piece-symbol {
-    font-size: 32px !important;
-  }
-  .board-label {
-    width: 18px !important;
-    height: 44px !important;
-    font-size: 10px !important;
-  }
-  .board-file-label {
-    width: 44px !important;
-    height: 18px !important;
-    font-size: 10px !important;
-  }
-
-  /* Navbar collapses */
-  .nav-links {
-    display: none !important;
-  }
-  .nav-logo-text {
-    display: none !important;
-  }
-  .nav-user-info {
-    display: none !important;
-  }
-  .nav-logout-btn {
-    display: none !important;
-  }
-}
-
-/* Phone: 480px */
-@media (max-width: 480px) {
-  /* Tiny board for small phones */
-  .board-square {
-    width: 38px !important;
-    height: 38px !important;
-  }
-  .board-square .piece-symbol {
-    font-size: 28px !important;
-  }
-  .board-label {
-    width: 14px !important;
-    height: 38px !important;
-    font-size: 9px !important;
-  }
-  .board-file-label {
-    width: 38px !important;
-    height: 14px !important;
-    font-size: 9px !important;
-  }
-}
-
 /* Game layout: stack board + sidebar vertically on mobile */
-@media (max-width: 900px) {
-  /* Force game play pages to stack vertically */
-  [style*="alignItems: flex-start"][style*="gap:"] {
+.game-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 700px) {
+  /* Stack game layouts vertically */
+  .game-layout {
     flex-direction: column !important;
     align-items: center !important;
+    gap: 12px !important;
   }
+  .game-sidebar {
+    width: 100% !important;
+    max-width: 400px;
+  }
+
+  /* Navbar: hide links, show hamburger */
+  .nav-links { display: none !important; }
+  .nav-logo-text { display: none !important; }
+  .nav-hamburger { display: block !important; }
+
+  /* Leaderboard: horizontal scroll */
+  .leaderboard-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Smaller page padding */
+  main > div {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  /* Smaller headings */
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
 }
 
-/* Dashboard grid: single column on mobile */
-@media (max-width: 768px) {
-  [style*="gridTemplateColumns: 2fr 1fr"] {
-    grid-template-columns: 1fr !important;
+@media (max-width: 400px) {
+  main > div {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
 }

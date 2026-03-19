@@ -583,7 +583,7 @@ export default function PlayMultiplayer() {
           Opponent disconnected. Waiting for reconnection...
         </div>
       )}
-      <div style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
+      <div className="game-layout" style={{ display: 'flex', gap: spacing.lg, alignItems: 'flex-start' }}>
         <div>
           {/* Top player bar */}
           <div style={{
