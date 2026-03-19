@@ -54,6 +54,50 @@ export default function AnalysisBoard() {
     return currentChess.turn() === 'b' ? -rawEval : rawEval;
   }, [rawEval, currentChess]);
 
+  // Build a map of target square → eval for displaying on legal move squares
+  // Keyed by "from:to" so we can filter by selected piece
+  const moveEvalsRaw = useMemo(() => {
+    if (!showMoveEvals || !lines || lines.length === 0 || !currentFen) return null;
+    const map = new Map();
+    for (const line of lines) {
+      if (!line.pv) continue;
+      const uci = line.pv.split(/\s+/)[0];
+      if (!uci || uci.length < 4) continue;
+      const from = uci.slice(0, 2);
+      const to = uci.slice(2, 4);
+      const key = `${from}:${to}`;
+      if (map.has(key)) continue;
+      const cp = line.eval;
+      const mate = line.mate;
+      let display, color;
+      if (mate !== null && mate !== undefined) {
+        display = mate > 0 ? `M${Math.abs(mate)}` : `-M${Math.abs(mate)}`;
+        color = mate > 0 ? '#22c55e' : '#ef4444';
+      } else if (cp !== null && cp !== undefined) {
+        const pawns = cp / 100;
+        display = (pawns > 0 ? '+' : '') + pawns.toFixed(1);
+        if (cp >= 50) color = '#22c55e';
+        else if (cp >= -20) color = '#a3e635';
+        else if (cp >= -100) color = '#fbbf24';
+        else color = '#ef4444';
+      } else continue;
+      map.set(key, { display, color, from, to });
+    }
+    return map;
+  }, [showMoveEvals, lines, currentFen]);
+
+  // Filter moveEvalsRaw to only the selected piece's moves, keyed by target square
+  const moveEvalsMap = useMemo(() => {
+    if (!moveEvalsRaw || !selectedSquare) return null;
+    const map = new Map();
+    for (const [, entry] of moveEvalsRaw) {
+      if (entry.from === selectedSquare) {
+        map.set(entry.to, { display: entry.display, color: entry.color });
+      }
+    }
+    return map.size > 0 ? map : null;
+  }, [moveEvalsRaw, selectedSquare]);
+
   // Format eval for display
   const evalDisplay = useMemo(() => {
     if (evalFromWhite === null) return '--';
@@ -194,19 +238,30 @@ export default function AnalysisBoard() {
   const handleSquareClick = useCallback((sq) => {
     const chess = new Chess(currentFen);
 
-    if (selectedSquare) {
+    if (selectedSquare && selectedSquare !== sq) {
+      // If clicking a piece of the same color as the selected piece, switch selection
+      const selectedPiece = chess.get(selectedSquare);
+      const targetPiece = chess.get(sq);
+      if (selectedPiece && targetPiece && selectedPiece.color === targetPiece.color) {
+        setSelectedSquare(sq);
+        setLegalMoves(chess.moves({ square: sq, verbose: true }).map((m) => m.to));
+        return;
+      }
+
       // Try to make the move
-      const piece = chess.get(selectedSquare);
-      if (piece) {
-        const isPromotion = piece.type === 'p' &&
-          ((piece.color === 'w' && sq[1] === '8') || (piece.color === 'b' && sq[1] === '1'));
+      if (selectedPiece) {
+        const isPromotion = selectedPiece.type === 'p' &&
+          ((selectedPiece.color === 'w' && sq[1] === '8') || (selectedPiece.color === 'b' && sq[1] === '1'));
         if (isPromotion && legalMoves.includes(sq)) {
-          // Auto-promote to queen for simplicity in analysis
           makeMove(selectedSquare, sq, 'q');
           return;
         }
       }
       if (makeMove(selectedSquare, sq)) return;
+      // Move failed — deselect
+      setSelectedSquare(null);
+      setLegalMoves([]);
+      return;
     }
 
     // Select a piece (any color in analysis mode)
@@ -401,6 +456,7 @@ export default function AnalysisBoard() {
             premoves={[]}
             premoveSquares={new Set()}
             premoveSelection={null}
+            moveEvals={moveEvalsMap}
           />
 
           {/* Navigation controls */}

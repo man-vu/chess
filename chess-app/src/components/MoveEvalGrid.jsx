@@ -122,9 +122,9 @@ export default function MoveEvalGrid({ lines, fen, onMoveClick }) {
 
       {/* Move rows */}
       <div style={{ maxHeight: 360, overflowY: 'auto' }}>
-        {moves.map((move) => (
+        {moves.map((move, idx) => (
           <div
-            key={move.san}
+            key={`${move.san}-${idx}`}
             onClick={() => onMoveClick?.(move.san)}
             style={{
               display: 'flex', alignItems: 'center', padding: '5px 10px', gap: 8,

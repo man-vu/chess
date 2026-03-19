@@ -36,11 +36,13 @@ export default function Board({
   premoveSelection,
   premoves,
   themeColors,
+  moveEvals, // Map<square, { display, color }> for showing eval on legal move squares
 }) {
   const ranks = flipped ? [...RANKS].reverse() : RANKS;
   const files = flipped ? [...FILES].reverse() : FILES;
   const pmSquares = premoveSquares || new Set();
   const pmList = premoves || [];
+  const evals = moveEvals || null;
 
   const handleDragStart = useCallback((sq) => (e) => {
     e.dataTransfer.setData('text/plain', sq);
@@ -110,6 +112,7 @@ export default function Board({
                     onDragStart={handleDragStart(sq)}
                     onDrop={handleDrop(sq)}
                     themeColors={themeColors}
+                    moveEval={isLegalMove && evals ? evals.get(sq) || null : null}
                   />
                 );
               })}

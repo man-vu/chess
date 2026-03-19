@@ -28,6 +28,7 @@ export default function Square({
   onDrop,
   squareSize = 72,
   themeColors,
+  moveEval, // { display: '+0.3', color: '#22c55e' } or null
 }) {
   const c = themeColors || DEFAULT_COLORS;
   const baseColor = isLight ? c.light : c.dark;
@@ -71,7 +72,7 @@ export default function Square({
         userSelect: 'none',
       }}
     >
-      {isLegalMove && !piece && (
+      {isLegalMove && !piece && !moveEval && (
         <div style={{
           width: squareSize * 0.28,
           height: squareSize * 0.28,
@@ -79,14 +80,61 @@ export default function Square({
           backgroundColor: LEGAL_MOVE,
         }} />
       )}
+      {isLegalMove && !piece && moveEval && (
+        <div className="square-eval" style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            fontSize: Math.max(11, squareSize * 0.17),
+            fontWeight: 700,
+            color: moveEval.color,
+            textShadow: isLight
+              ? '0 1px 2px rgba(255,255,255,0.7)'
+              : '0 1px 3px rgba(0,0,0,0.6)',
+            fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            letterSpacing: '-0.02em',
+            backgroundColor: `${isLight ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.4)'}`,
+            padding: '2px 4px',
+            borderRadius: 4,
+          }}>
+            {moveEval.display}
+          </span>
+        </div>
+      )}
       {isLegalMove && piece && (
         <div style={{
           position: 'absolute',
           inset: 2,
           borderRadius: '50%',
-          border: `${Math.max(3, squareSize * 0.06)}px solid ${LEGAL_MOVE}`,
+          border: `${Math.max(3, squareSize * 0.06)}px solid ${moveEval ? moveEval.color : LEGAL_MOVE}`,
           pointerEvents: 'none',
         }} />
+      )}
+      {isLegalMove && piece && moveEval && (
+        <div className="square-eval" style={{
+          position: 'absolute',
+          bottom: 2,
+          right: 2,
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            fontSize: Math.max(9, squareSize * 0.14),
+            fontWeight: 700,
+            color: moveEval.color,
+            fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+            backgroundColor: `${isLight ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.55)'}`,
+            padding: '1px 3px',
+            borderRadius: 3,
+            lineHeight: 1,
+          }}>
+            {moveEval.display}
+          </span>
+        </div>
       )}
       {piece && (
         <div
