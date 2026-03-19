@@ -27,9 +27,12 @@ export function ThemeProvider({ children }) {
     }
     // Update the global theme reference so colors/shadows proxies reflect the new theme
     _setActiveTheme(theme === 'dark' ? darkTheme : lightTheme);
-    // Update body background for areas outside the React root
-    document.body.style.backgroundColor = theme === 'dark' ? darkTheme.colors.bg : lightTheme.colors.bg;
-    document.body.style.color = theme === 'dark' ? darkTheme.colors.text : lightTheme.colors.text;
+    // Update body + html background for areas outside the React root
+    const bg = theme === 'dark' ? darkTheme.colors.bg : lightTheme.colors.bg;
+    const fg = theme === 'dark' ? darkTheme.colors.text : lightTheme.colors.text;
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = fg;
+    document.documentElement.style.backgroundColor = bg;
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
