@@ -1,11 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 const DEBOUNCE_MS = 300;
-const ANALYSIS_DEPTH = 18;
 const MATE_SCORE = 10000;
 const DEFAULT_MULTI_PV = 3;
 
-export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV } = {}) {
+export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV, depth: targetDepth } = {}) {
+  // Use lower depth for high MultiPV to keep analysis responsive
+  const analysisDepth = targetDepth || (multiPV > 10 ? 10 : multiPV > 5 ? 14 : 18);
   const workerRef = useRef(null);
   const debounceRef = useRef(null);
   const multiPVRef = useRef(multiPV);
@@ -84,13 +85,13 @@ export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV } = {
 
       worker.postMessage('stop');
       worker.postMessage(`position fen ${fen}`);
-      worker.postMessage(`go depth ${ANALYSIS_DEPTH}`);
+      worker.postMessage(`go depth ${analysisDepth}`);
     }, DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [fen, evalState.isReady]);
+  }, [fen, evalState.isReady, analysisDepth]);
 
   const stopEval = useCallback(() => {
     if (workerRef.current) {

@@ -1133,12 +1133,12 @@ test.describe('23d. Analysis Lines', () => {
   test('toggling analysis OFF hides lines', async ({ page }) => {
     await go(page, '/analysis');
     await page.waitForSelector('.analysis-lines', { timeout: 15000 });
-    // Click OFF
-    await page.getByRole('button', { name: 'ON' }).click();
+    // Click the Engine Lines ON button to turn it OFF
+    await page.getByRole('button', { name: 'ON' }).first().click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Analysis paused')).toBeVisible();
-    // Click back ON
-    await page.getByRole('button', { name: 'OFF' }).click();
+    // Click the first OFF button (Engine Lines) to turn it back ON
+    await page.getByRole('button', { name: 'OFF' }).first().click();
     await page.waitForTimeout(300);
     await expect(page.getByText('Analysis paused')).not.toBeVisible();
   });
@@ -1171,6 +1171,59 @@ test.describe('23d. Analysis Lines', () => {
     await page.waitForTimeout(2000);
     // Analysis lines should appear
     await expect(page.getByRole('button', { name: /Hide Analysis/ })).toBeVisible();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 23e. MOVE EVALUATIONS (Eval every legal move)
+// ════════════════════════════════════════════════════════════════════════════════
+
+test.describe('23e. Move Evaluations', () => {
+  test('analysis board has Move Evaluations section with OFF toggle', async ({ page }) => {
+    await go(page, '/analysis');
+    await expect(page.getByText('Move Evaluations')).toBeVisible();
+    await expect(page.getByText('Enable to see evaluation for all')).toBeVisible();
+  });
+
+  test('toggling ON shows eval grid for all legal moves', async ({ page }) => {
+    await go(page, '/analysis');
+    // Turn on move evals
+    await page.getByText('Move Evaluations').waitFor();
+    const offBtn = page.getByRole('button', { name: 'OFF' });
+    await offBtn.click();
+    // Wait for Stockfish MultiPV analysis (needs time for worker restart + depth 10)
+    await page.waitForSelector('.move-eval-grid', { timeout: 20000 });
+    await page.waitForTimeout(8000);
+    // Should show the grid with header row
+    await expect(page.getByText('Move', { exact: true }).last()).toBeVisible();
+    await expect(page.getByText('Eval', { exact: true })).toBeVisible();
+    // Should show legal move count in footer
+    await expect(page.getByText(/legal moves/)).toBeVisible();
+    // Should show depth in footer
+    await expect(page.getByText(/depth \d+/).last()).toBeVisible();
+  });
+
+  test('move eval grid shows classifications (Best, Good, etc)', async ({ page }) => {
+    await go(page, '/analysis');
+    await page.getByText('Move Evaluations').waitFor();
+    await page.getByRole('button', { name: 'OFF' }).click();
+    await page.waitForSelector('.move-eval-grid', { timeout: 20000 });
+    await page.waitForTimeout(8000);
+    // Should show at least one "Best" classification
+    await expect(page.getByText('Best').first()).toBeVisible();
+  });
+
+  test('toggling OFF hides the eval grid', async ({ page }) => {
+    await go(page, '/analysis');
+    await page.getByText('Move Evaluations').waitFor();
+    // Turn ON
+    await page.getByRole('button', { name: 'OFF' }).click();
+    await page.waitForSelector('.move-eval-grid', { timeout: 20000 });
+    // Turn OFF
+    const onBtns = page.getByRole('button', { name: 'ON' });
+    await onBtns.last().click();
+    await page.waitForTimeout(300);
+    await expect(page.getByText('Enable to see evaluation for all')).toBeVisible();
   });
 });
 

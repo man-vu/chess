@@ -4,6 +4,7 @@ import Board from '../components/Board';
 import EvalBar from '../components/EvalBar';
 import useStockfishEval from '../hooks/useStockfishEval';
 import AnalysisLines from '../components/AnalysisLines';
+import MoveEvalGrid from '../components/MoveEvalGrid';
 import { colors, commonStyles, spacing, borderRadius, shadows, transitions, typography } from '../theme';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -38,7 +39,14 @@ export default function AnalysisBoard() {
   // Stockfish evaluation with multiple lines
   const [showAnalysis, setShowAnalysis] = useState(true);
   const [numLines, setNumLines] = useState(3);
-  const { eval: rawEval, depth, bestLine, lines, isReady } = useStockfishEval(currentFen, { multiPV: numLines });
+  const [showMoveEvals, setShowMoveEvals] = useState(false);
+
+  // Count legal moves for MultiPV when evaluating all moves
+  const legalMoveCount = useMemo(() => currentChess.moves().length, [currentChess]);
+
+  // Use high MultiPV when move eval mode is on, otherwise use user-selected line count
+  const effectiveMultiPV = showMoveEvals ? Math.max(legalMoveCount, 1) : numLines;
+  const { eval: rawEval, depth, bestLine, lines, isReady } = useStockfishEval(currentFen, { multiPV: effectiveMultiPV });
 
   // Normalize eval to White's perspective
   const evalFromWhite = useMemo(() => {
@@ -605,6 +613,33 @@ export default function AnalysisBoard() {
               <AnalysisLines lines={lines} fen={currentFen} maxMoves={10} />
             ) : (
               <div style={{ color: colors.textMuted, fontSize: 12, fontStyle: 'italic' }}>Analysis paused</div>
+            )}
+          </div>
+
+          {/* Move Evaluations — evaluate every legal move */}
+          <div style={sectionStyle}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs }}>
+              <div style={sectionTitleStyle}>Move Evaluations</div>
+              <button
+                onClick={() => setShowMoveEvals((s) => !s)}
+                style={{
+                  ...smallBtnStyle, padding: '2px 8px', fontSize: 10,
+                  color: showMoveEvals ? colors.accent : colors.textDark,
+                  borderColor: showMoveEvals ? `${colors.accent}40` : colors.borderLight,
+                }}
+              >
+                {showMoveEvals ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            {showMoveEvals ? (
+              <MoveEvalGrid
+                lines={lines}
+                fen={currentFen}
+              />
+            ) : (
+              <div style={{ color: colors.textMuted, fontSize: 12 }}>
+                Enable to see evaluation for all {legalMoveCount} legal moves
+              </div>
             )}
           </div>
 
