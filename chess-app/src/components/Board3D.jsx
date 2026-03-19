@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useCallback } from 'react';
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -355,13 +355,25 @@ export default function Board3D({
   flipped,
   style,
 }) {
+  // Match 2D board sizing: responsive square size * 8 + label width
+  const [size, setSize] = useState(598);
+  useEffect(() => {
+    const update = () => {
+      const vw = window.innerWidth;
+      const available = Math.min(vw - 54, 598); // 22 labels + 32 padding
+      setSize(Math.max(280, available));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   return (
     <div
       className="board-3d"
       style={{
-        width: '100%',
-        maxWidth: 600,
-        aspectRatio: '1',
+        width: size,
+        height: size,
         borderRadius: 8,
         overflow: 'hidden',
         boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
@@ -370,7 +382,7 @@ export default function Board3D({
     >
       <Canvas
         shadows
-        camera={{ position: [0, 7, 6], fov: 45 }}
+        camera={{ position: [0, 6, 5.5], fov: 50 }}
         gl={{ antialias: true, alpha: false }}
         onCreated={({ gl }) => {
           gl.setClearColor('#1a1a1d');
