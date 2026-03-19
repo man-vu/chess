@@ -492,8 +492,8 @@ test.describe('10. Analysis Board', () => {
     await page.waitForTimeout(100);
     await clickSquare(page, 'e4');
     await page.waitForTimeout(300);
-    // Move should show
-    await expect(page.getByText('e4')).toBeVisible();
+    // Move counter should update
+    await expect(page.getByText('1 / 1')).toBeVisible();
     // Navigate back
     await page.getByText('|<').click();
     await page.waitForTimeout(200);
@@ -1088,6 +1088,89 @@ test.describe('23c. AI vs AI Spectating', () => {
     await page.waitForTimeout(500);
     // Should be back on setup screen
     await expect(page.getByText('White Engine')).toBeVisible();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// 23d. ANALYSIS LINES (Engine Lines / Show Analysis)
+// ════════════════════════════════════════════════════════════════════════════════
+
+test.describe('23d. Analysis Lines', () => {
+  test('analysis board shows Engine Lines section with ON/OFF toggle', async ({ page }) => {
+    await go(page, '/analysis');
+    await expect(page.getByText('Engine Lines')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'ON' })).toBeVisible();
+  });
+
+  test('engine lines populate after Stockfish analyzes the position', async ({ page }) => {
+    await go(page, '/analysis');
+    // Wait for Stockfish to produce lines (needs time to load + analyze)
+    await page.waitForSelector('.analysis-lines', { timeout: 15000 });
+    await page.waitForTimeout(2000);
+    // Should have at least one line with an eval badge
+    const lines = page.locator('.analysis-lines > div');
+    expect(await lines.count()).toBeGreaterThan(0);
+  });
+
+  test('line count selector is functional', async ({ page }) => {
+    await go(page, '/analysis');
+    await page.waitForSelector('.analysis-lines', { timeout: 15000 });
+    await page.waitForTimeout(2000);
+    // Verify multiple lines showing by default (3 lines)
+    const lines = page.locator('.analysis-lines > div');
+    expect(await lines.count()).toBeGreaterThanOrEqual(2);
+    // Line count selector should be available with correct options
+    const select = page.locator('select');
+    await expect(select).toBeVisible();
+    const selectedValue = await select.inputValue();
+    expect(selectedValue).toBe('3');
+    // Can change the selector without error
+    await select.selectOption('5');
+    await page.waitForTimeout(500);
+    expect(await select.inputValue()).toBe('5');
+  });
+
+  test('toggling analysis OFF hides lines', async ({ page }) => {
+    await go(page, '/analysis');
+    await page.waitForSelector('.analysis-lines', { timeout: 15000 });
+    // Click OFF
+    await page.getByRole('button', { name: 'ON' }).click();
+    await page.waitForTimeout(300);
+    await expect(page.getByText('Analysis paused')).toBeVisible();
+    // Click back ON
+    await page.getByRole('button', { name: 'OFF' }).click();
+    await page.waitForTimeout(300);
+    await expect(page.getByText('Analysis paused')).not.toBeVisible();
+  });
+
+  test('analysis lines update when a move is made', async ({ page }) => {
+    await go(page, '/analysis');
+    await page.waitForSelector('.analysis-lines', { timeout: 15000 });
+    await page.waitForTimeout(2000);
+    // Get first line text before move
+    const firstLineBefore = await page.locator('.analysis-lines > div').first().textContent();
+    // Make move e2-e4
+    await clickSquare(page, 'e2');
+    await clickSquare(page, 'e4');
+    await page.waitForTimeout(3000);
+    // First line should have changed (different position = different analysis)
+    const firstLineAfter = await page.locator('.analysis-lines > div').first().textContent();
+    expect(firstLineAfter).not.toBe(firstLineBefore);
+  });
+
+  test('play vs AI has show/hide analysis toggle', async ({ page }) => {
+    await go(page, '/play/ai');
+    // Wait for Stockfish to load and start game
+    await page.waitForSelector('button:not([disabled])', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Start Game' }).click();
+    await page.waitForSelector('.board-square', { timeout: 10000 });
+    // Show Analysis button should be visible
+    await expect(page.getByRole('button', { name: /Show Analysis/ })).toBeVisible();
+    // Click to show
+    await page.getByRole('button', { name: /Show Analysis/ }).click();
+    await page.waitForTimeout(2000);
+    // Analysis lines should appear
+    await expect(page.getByRole('button', { name: /Hide Analysis/ })).toBeVisible();
   });
 });
 

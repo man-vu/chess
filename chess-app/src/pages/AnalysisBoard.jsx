@@ -3,6 +3,7 @@ import { Chess } from 'chess.js';
 import Board from '../components/Board';
 import EvalBar from '../components/EvalBar';
 import useStockfishEval from '../hooks/useStockfishEval';
+import AnalysisLines from '../components/AnalysisLines';
 import { colors, commonStyles, spacing, borderRadius, shadows, transitions, typography } from '../theme';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -34,8 +35,10 @@ export default function AnalysisBoard() {
   // Chess instance for current position
   const currentChess = useMemo(() => new Chess(currentFen), [currentFen]);
 
-  // Stockfish evaluation
-  const { eval: rawEval, depth, bestLine, isReady } = useStockfishEval(currentFen);
+  // Stockfish evaluation with multiple lines
+  const [showAnalysis, setShowAnalysis] = useState(true);
+  const [numLines, setNumLines] = useState(3);
+  const { eval: rawEval, depth, bestLine, lines, isReady } = useStockfishEval(currentFen, { multiPV: numLines });
 
   // Normalize eval to White's perspective
   const evalFromWhite = useMemo(() => {
@@ -559,17 +562,50 @@ export default function AnalysisBoard() {
             </div>
           </div>
 
-          {/* Best move */}
+          {/* Engine Lines */}
           <div style={sectionStyle}>
-            <div style={sectionTitleStyle}>Best Move</div>
-            <span style={{
-              color: isReady ? colors.accent : colors.textMuted,
-              fontSize: 16,
-              fontWeight: 600,
-              fontFamily: typography.monoFamily,
-            }}>
-              {isReady ? bestMoveDisplay : 'Loading...'}
-            </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs }}>
+              <div style={sectionTitleStyle}>Engine Lines</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button
+                  onClick={() => setShowAnalysis((s) => !s)}
+                  style={{
+                    ...smallBtnStyle, padding: '2px 8px', fontSize: 10,
+                    color: showAnalysis ? colors.accent : colors.textDark,
+                    borderColor: showAnalysis ? `${colors.accent}40` : colors.borderLight,
+                  }}
+                >
+                  {showAnalysis ? 'ON' : 'OFF'}
+                </button>
+                {showAnalysis && (
+                  <select
+                    value={numLines}
+                    onChange={(e) => setNumLines(parseInt(e.target.value, 10))}
+                    style={{
+                      backgroundColor: colors.bgInput,
+                      color: colors.textSecondary,
+                      border: `1px solid ${colors.borderLight}`,
+                      borderRadius: 4,
+                      padding: '2px 4px',
+                      fontSize: 11,
+                      fontFamily: typography.monoFamily,
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value={1}>1 line</option>
+                    <option value={2}>2 lines</option>
+                    <option value={3}>3 lines</option>
+                    <option value={5}>5 lines</option>
+                  </select>
+                )}
+              </div>
+            </div>
+            {showAnalysis ? (
+              <AnalysisLines lines={lines} fen={currentFen} maxMoves={10} />
+            ) : (
+              <div style={{ color: colors.textMuted, fontSize: 12, fontStyle: 'italic' }}>Analysis paused</div>
+            )}
           </div>
 
           {/* FEN */}

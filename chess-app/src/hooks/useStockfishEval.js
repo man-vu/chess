@@ -1,18 +1,28 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 const DEBOUNCE_MS = 300;
-const ANALYSIS_DEPTH = 16;
+const ANALYSIS_DEPTH = 18;
 const MATE_SCORE = 10000;
+const DEFAULT_MULTI_PV = 3;
 
-export default function useStockfishEval(fen) {
+export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV } = {}) {
   const workerRef = useRef(null);
   const debounceRef = useRef(null);
+  const multiPVRef = useRef(multiPV);
   const [evalState, setEvalState] = useState({
     eval: null,
     depth: 0,
     bestLine: '',
+    lines: [], // Array of { pv, eval, depth, mate, pvIndex }
     isReady: false,
   });
+
+  // Track lines being built during analysis
+  const linesRef = useRef(new Map());
+
+  useEffect(() => {
+    multiPVRef.current = multiPV;
+  }, [multiPV]);
 
   useEffect(() => {
     const worker = new Worker(`${import.meta.env.BASE_URL}stockfish.js`);
@@ -26,21 +36,30 @@ export default function useStockfishEval(fen) {
         setEvalState((prev) => ({ ...prev, isReady: true }));
       }
 
-      if (line.startsWith('info') && line.includes('score')) {
+      if (line.startsWith('info') && line.includes('score') && line.includes(' pv ')) {
         const parsed = parseInfoLine(line);
-        if (parsed) {
+        if (parsed && parsed.depth >= 1) {
+          const pvIdx = parsed.pvIndex || 1;
+          linesRef.current.set(pvIdx, parsed);
+
+          // Update state with all collected lines
+          const allLines = Array.from(linesRef.current.entries())
+            .sort(([a], [b]) => a - b)
+            .map(([, v]) => v);
+
           setEvalState((prev) => ({
             ...prev,
-            eval: parsed.eval,
-            depth: parsed.depth,
-            bestLine: parsed.bestLine,
+            eval: allLines[0]?.eval ?? prev.eval,
+            depth: allLines[0]?.depth ?? prev.depth,
+            bestLine: allLines[0]?.pv ?? prev.bestLine,
+            lines: allLines,
           }));
         }
       }
     };
 
     worker.postMessage('uci');
-    worker.postMessage('setoption name MultiPV value 1');
+    worker.postMessage(`setoption name MultiPV value ${multiPV}`);
     worker.postMessage('isready');
 
     return () => {
@@ -49,7 +68,7 @@ export default function useStockfishEval(fen) {
       worker.terminate();
       workerRef.current = null;
     };
-  }, []);
+  }, [multiPV]);
 
   useEffect(() => {
     if (!fen || !evalState.isReady || !workerRef.current) return;
@@ -59,6 +78,9 @@ export default function useStockfishEval(fen) {
     debounceRef.current = setTimeout(() => {
       const worker = workerRef.current;
       if (!worker) return;
+
+      // Clear previous lines when position changes
+      linesRef.current.clear();
 
       worker.postMessage('stop');
       worker.postMessage(`position fen ${fen}`);
@@ -80,6 +102,7 @@ export default function useStockfishEval(fen) {
     eval: evalState.eval,
     depth: evalState.depth,
     bestLine: evalState.bestLine,
+    lines: evalState.lines,
     isReady: evalState.isReady,
     stopEval,
   };
@@ -89,21 +112,17 @@ function parseInfoLine(line) {
   const depthMatch = line.match(/\bdepth (\d+)/);
   const depth = depthMatch ? parseInt(depthMatch[1], 10) : 0;
 
-  // Skip very shallow depths to reduce noise
   if (depth < 1) return null;
 
   let evalValue = null;
+  let mate = null;
 
   const cpMatch = line.match(/\bscore cp (-?\d+)/);
   const mateMatch = line.match(/\bscore mate (-?\d+)/);
 
   if (mateMatch) {
-    const mateIn = parseInt(mateMatch[1], 10);
-    // Positive = engine (side to move) mates, negative = engine gets mated
-    // We normalize to White's perspective below via multipv/fen side,
-    // but UCI scores are from side-to-move perspective.
-    // The caller handles perspective via FEN's active color.
-    evalValue = mateIn > 0 ? MATE_SCORE : -MATE_SCORE;
+    mate = parseInt(mateMatch[1], 10);
+    evalValue = mate > 0 ? MATE_SCORE : -MATE_SCORE;
   } else if (cpMatch) {
     evalValue = parseInt(cpMatch[1], 10);
   }
@@ -111,7 +130,10 @@ function parseInfoLine(line) {
   if (evalValue === null) return null;
 
   const pvMatch = line.match(/\bpv (.+)$/);
-  const bestLine = pvMatch ? pvMatch[1].trim() : '';
+  const pv = pvMatch ? pvMatch[1].trim() : '';
 
-  return { eval: evalValue, depth, bestLine };
+  const multipvMatch = line.match(/\bmultipv (\d+)/);
+  const pvIndex = multipvMatch ? parseInt(multipvMatch[1], 10) : 1;
+
+  return { eval: evalValue, depth, pv, mate, pvIndex };
 }

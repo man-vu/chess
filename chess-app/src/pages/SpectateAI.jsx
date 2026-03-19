@@ -5,6 +5,7 @@ import Board from '../components/Board';
 import MoveHistory from '../components/MoveHistory';
 import EvalBar from '../components/EvalBar';
 import useStockfishEval from '../hooks/useStockfishEval';
+import AnalysisLines from '../components/AnalysisLines';
 import useSoundEffects from '../hooks/useSoundEffects';
 import useBoardTheme from '../hooks/useBoardTheme';
 import { getOpeningName } from '../data/openings';
@@ -93,7 +94,8 @@ export default function SpectateAI() {
   const { boardTheme } = useBoardTheme();
   const openingName = getOpeningName(moveHistory);
 
-  const evalResult = useStockfishEval(gameStarted ? game.fen() : null);
+  const [showLines, setShowLines] = useState(false);
+  const evalResult = useStockfishEval(gameStarted ? game.fen() : null, { multiPV: showLines ? 3 : 1 });
   const evalFromWhite = evalResult.eval !== null
     ? (game.turn() === 'b' ? -evalResult.eval : evalResult.eval)
     : null;
@@ -380,6 +382,27 @@ export default function SpectateAI() {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Analysis Lines */}
+          <button
+            onClick={() => setShowLines((s) => !s)}
+            style={{
+              ...commonStyles.buttonSecondary,
+              fontSize: 12, padding: '6px 12px',
+              color: showLines ? colors.accent : colors.textDark,
+              borderColor: showLines ? `${colors.accent}40` : colors.borderLight,
+            }}
+          >
+            {showLines ? '▼ Hide Analysis' : '▶ Show Analysis'}
+          </button>
+          {showLines && evalResult.lines.length > 0 && (
+            <div style={{
+              backgroundColor: colors.bgCard, borderRadius: borderRadius.md,
+              padding: spacing.sm, border: `1px solid ${colors.border}`,
+            }}>
+              <AnalysisLines lines={evalResult.lines} fen={game.fen()} maxMoves={6} />
             </div>
           )}
 

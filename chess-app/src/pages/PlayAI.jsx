@@ -7,6 +7,7 @@ import PromotionModal from '../components/PromotionModal';
 import EvalBar from '../components/EvalBar';
 import useStockfish from '../hooks/useStockfish';
 import useStockfishEval from '../hooks/useStockfishEval';
+import AnalysisLines from '../components/AnalysisLines';
 import usePremoves from '../hooks/usePremoves';
 import useSoundEffects from '../hooks/useSoundEffects';
 import useChessClock from '../hooks/useChessClock';
@@ -58,8 +59,9 @@ export default function PlayAI() {
 
   const openingName = getOpeningName(moveHistory);
 
-  // Eval bar
-  const evalResult = useStockfishEval(gameStarted ? game.fen() : null);
+  // Eval bar + analysis lines
+  const [showLines, setShowLines] = useState(false);
+  const evalResult = useStockfishEval(gameStarted ? game.fen() : null, { multiPV: showLines ? 3 : 1 });
   const evalFromWhite = evalResult.eval !== null
     ? (game.turn() === 'b' ? -evalResult.eval : evalResult.eval)
     : null;
@@ -423,6 +425,29 @@ export default function PlayAI() {
               animation: 'fadeIn 200ms ease',
             }}>
               {status}
+            </div>
+          )}
+          {/* Analysis Lines Toggle */}
+          <button
+            onClick={() => setShowLines((s) => !s)}
+            style={{
+              ...commonStyles.buttonSecondary,
+              fontSize: 12,
+              padding: '6px 12px',
+              color: showLines ? colors.accent : colors.textDark,
+              borderColor: showLines ? `${colors.accent}40` : colors.borderLight,
+            }}
+          >
+            {showLines ? '▼ Hide Analysis' : '▶ Show Analysis'}
+          </button>
+          {showLines && evalResult.lines.length > 0 && (
+            <div style={{
+              backgroundColor: colors.bgCard,
+              borderRadius: borderRadius.md,
+              padding: spacing.sm,
+              border: `1px solid ${colors.border}`,
+            }}>
+              <AnalysisLines lines={evalResult.lines} fen={game.fen()} maxMoves={6} />
             </div>
           )}
           {gameOver && (
