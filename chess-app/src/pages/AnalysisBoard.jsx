@@ -45,7 +45,7 @@ export default function AnalysisBoard() {
   const legalMoveCount = useMemo(() => currentChess.moves().length, [currentChess]);
 
   // Use high MultiPV when move eval mode is on, otherwise use user-selected line count
-  const effectiveMultiPV = showMoveEvals ? Math.max(legalMoveCount, 1) : numLines;
+  const effectiveMultiPV = showMoveEvals ? Math.min(Math.max(legalMoveCount, 1), 20) : numLines;
   const { eval: rawEval, depth, bestLine, lines, isReady } = useStockfishEval(currentFen, { multiPV: effectiveMultiPV });
 
   // Normalize eval to White's perspective

@@ -4,9 +4,13 @@ const DEBOUNCE_MS = 300;
 const MATE_SCORE = 10000;
 const DEFAULT_MULTI_PV = 3;
 
+const MAX_MULTI_PV = 20; // WASM Stockfish crashes above this
+
 export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV, depth: targetDepth } = {}) {
+  // Cap MultiPV to prevent WASM crashes
+  const safeMultiPV = Math.min(multiPV, MAX_MULTI_PV);
   // Use lower depth for high MultiPV to keep analysis responsive
-  const analysisDepth = targetDepth || (multiPV > 10 ? 10 : multiPV > 5 ? 14 : 18);
+  const analysisDepth = targetDepth || (safeMultiPV > 10 ? 10 : safeMultiPV > 5 ? 14 : 18);
   const workerRef = useRef(null);
   const debounceRef = useRef(null);
   const multiPVRef = useRef(multiPV);
@@ -22,8 +26,8 @@ export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV, dept
   const linesRef = useRef(new Map());
 
   useEffect(() => {
-    multiPVRef.current = multiPV;
-  }, [multiPV]);
+    multiPVRef.current = safeMultiPV;
+  }, [safeMultiPV]);
 
   useEffect(() => {
     const worker = new Worker(`${import.meta.env.BASE_URL}stockfish.js`);
@@ -59,17 +63,20 @@ export default function useStockfishEval(fen, { multiPV = DEFAULT_MULTI_PV, dept
       }
     };
 
+    // Handle WASM crashes gracefully
+    worker.onerror = () => {};
+
     worker.postMessage('uci');
-    worker.postMessage(`setoption name MultiPV value ${multiPV}`);
+    worker.postMessage(`setoption name MultiPV value ${safeMultiPV}`);
     worker.postMessage('isready');
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      worker.postMessage('quit');
+      try { worker.postMessage('quit'); } catch {}
       worker.terminate();
       workerRef.current = null;
     };
-  }, [multiPV]);
+  }, [safeMultiPV]);
 
   useEffect(() => {
     if (!fen || !evalState.isReady || !workerRef.current) return;

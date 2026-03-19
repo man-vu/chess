@@ -49,7 +49,10 @@ export const transitions = {
 
 export const commonStyles = {
   page: {
-    padding: spacing.xl,
+    paddingTop: spacing.xl,
+    paddingRight: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingLeft: spacing.xl,
     maxWidth: 1200,
     margin: '0 auto',
     width: '100%',
