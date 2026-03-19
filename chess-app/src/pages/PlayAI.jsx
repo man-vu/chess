@@ -1,7 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, lazy, Suspense } from 'react';
 import { Chess } from 'chess.js';
 import { useNavigate } from 'react-router-dom';
 import Board from '../components/Board';
+
+const Board3D = lazy(() => import('../components/Board3D'));
 import MoveHistory from '../components/MoveHistory';
 import PromotionModal from '../components/PromotionModal';
 import EvalBar from '../components/EvalBar';
@@ -37,7 +39,9 @@ export default function PlayAI() {
 
   const skillLevel = DIFFICULTY[difficulty];
   const { isReady, getMove, stop } = useStockfish(skillLevel);
-  const { currentUser, refreshUser } = useAuth();
+  const { currentUser, refreshUser, updateProfile } = useAuth();
+  const isPremium = currentUser?.premium;
+  const [view3D, setView3D] = useState(false);
   const { saveGame } = useGameContext();
   const navigate = useNavigate();
   const gameRef = useRef(game);
@@ -374,20 +378,26 @@ export default function PlayAI() {
               <span style={{ color: colors.accent, fontStyle: 'italic', fontSize: 13, animation: 'pulse 1.5s ease-in-out infinite' }}>thinking...</span>
             )}
           </div>
-          <Board
-            game={game}
-            selectedSquare={selectedSquare}
-            legalMoves={legalMoves}
-            lastMove={lastMove}
-            onSquareClick={handleSquareClick}
-            onDragMove={handleDragMove}
-            onRightClick={handleRightClick}
-            flipped={playerColor === 'b'}
-            premoves={premoves}
-            premoveSquares={premoveSquares}
-            premoveSelection={premoveSelection}
-            themeColors={boardTheme}
-          />
+          {view3D ? (
+            <Suspense fallback={<div style={{ width: '100%', maxWidth: 600, aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a1a1d', borderRadius: 8, color: colors.textMuted }}>Loading 3D board...</div>}>
+              <Board3D game={game} selectedSquare={selectedSquare} legalMoves={legalMoves} lastMove={lastMove} onSquareClick={handleSquareClick} flipped={playerColor === 'b'} />
+            </Suspense>
+          ) : (
+            <Board
+              game={game}
+              selectedSquare={selectedSquare}
+              legalMoves={legalMoves}
+              lastMove={lastMove}
+              onSquareClick={handleSquareClick}
+              onDragMove={handleDragMove}
+              onRightClick={handleRightClick}
+              flipped={playerColor === 'b'}
+              premoves={premoves}
+              premoveSquares={premoveSquares}
+              premoveSelection={premoveSelection}
+              themeColors={boardTheme}
+            />
+          )}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 4px' }}>
             <span style={{ color: colors.textSecondary, fontSize: 14, fontWeight: 500 }}>
               {playerColor === 'w' ? 'You' : `Stockfish (${difficulty})`}
@@ -476,6 +486,17 @@ export default function PlayAI() {
               setGame(next); setMoveHistory(history); setLastMove(null);
               setSelectedSquare(null); setLegalMoves([]); setStatus(''); clearPremoves();
             }} style={commonStyles.buttonSecondary}>Undo Move</button>
+          )}
+          {isPremium ? (
+            <button onClick={() => setView3D(v => !v)} style={{
+              ...commonStyles.buttonSecondary,
+              color: view3D ? colors.accent : colors.textDark,
+              borderColor: view3D ? `${colors.accent}40` : colors.borderLight,
+            }}>{view3D ? '2D View' : '★ 3D View'}</button>
+          ) : (
+            <button onClick={() => { if (currentUser) updateProfile({ premium: true }); else navigate('/signup'); }} style={{
+              ...commonStyles.buttonSecondary, color: '#d4af37', borderColor: '#d4af3740',
+            }} title="Upgrade to premium for 3D board">★ 3D Board</button>
           )}
           <button onClick={() => { stop(); navigate('/play'); }} style={commonStyles.buttonSecondary}>Back</button>
         </div>

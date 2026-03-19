@@ -1227,6 +1227,60 @@ test.describe('23e. Move Evaluations', () => {
   });
 });
 
+// ════════════════════════════════════════════════════════════════════════════════
+// 23f. 3D BOARD (Premium Feature)
+// ════════════════════════════════════════════════════════════════════════════════
+
+test.describe('23f. 3D Board Premium Feature', () => {
+  test('play local shows 3D Board premium button when not premium', async ({ page }) => {
+    await go(page, '/play/local');
+    await page.waitForSelector('.board-square');
+    await expect(page.getByRole('button', { name: /3D Board/ })).toBeVisible();
+  });
+
+  test('clicking 3D Board upgrades to premium and shows toggle', async ({ page }) => {
+    await signup(page, 'PremiumUser', 'premium@test.com');
+    await page.goto('/play/local');
+    await page.waitForSelector('.board-square');
+    // Click premium upgrade button
+    await page.getByRole('button', { name: /3D Board/ }).click();
+    await page.waitForTimeout(300);
+    // Should now show 3D View toggle
+    await expect(page.getByRole('button', { name: /3D View/ })).toBeVisible();
+  });
+
+  test('3D view toggle switches board and can revert to 2D', async ({ page }) => {
+    await signup(page, 'Premium3D', 'premium3d@test.com');
+    await page.goto('/play/local');
+    await page.waitForSelector('.board-square');
+    // Upgrade to premium
+    await page.getByRole('button', { name: /3D Board/ }).click();
+    await page.waitForTimeout(300);
+    // Toggle to 3D — the 2D board squares should disappear
+    await page.getByRole('button', { name: /3D View/ }).click();
+    await page.waitForTimeout(1500);
+    // 2D board squares should be gone (replaced by 3D canvas or loading)
+    const squareCount = await page.locator('.board-square').count();
+    expect(squareCount).toBe(0);
+    // 2D View button should be available to switch back
+    await expect(page.getByRole('button', { name: '2D View' })).toBeVisible();
+    // Toggle back to 2D
+    await page.getByRole('button', { name: '2D View' }).click();
+    await page.waitForTimeout(500);
+    // Regular board squares should be back
+    await page.waitForSelector('.board-square');
+    expect(await page.locator('.board-square').count()).toBe(64);
+  });
+
+  test('play vs AI shows 3D Board premium button', async ({ page }) => {
+    await go(page, '/play/ai');
+    await page.waitForSelector('button:not([disabled])', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Start Game' }).click();
+    await page.waitForSelector('.board-square', { timeout: 10000 });
+    await expect(page.getByRole('button', { name: /3D Board/ })).toBeVisible();
+  });
+});
+
 test.describe('23. Cross-Feature Navigation', () => {
   test('full user journey: signup → play → history → achievements', async ({ page }) => {
     // Step 1: Signup

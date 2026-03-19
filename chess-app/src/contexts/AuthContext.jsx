@@ -39,6 +39,7 @@ export function AuthProvider({ children }) {
       joinedAt: new Date().toISOString(),
       bio: '',
       friends: [],
+      premium: false,
       peakElo: 1200,
       eloHistory: [{ date: new Date().toISOString(), elo: 1200 }],
     };

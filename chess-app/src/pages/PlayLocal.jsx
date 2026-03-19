@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { Chess } from 'chess.js';
 import { useNavigate } from 'react-router-dom';
 import Board from '../components/Board';
@@ -6,8 +6,11 @@ import MoveHistory from '../components/MoveHistory';
 import PromotionModal from '../components/PromotionModal';
 import useSoundEffects from '../hooks/useSoundEffects';
 import useBoardTheme from '../hooks/useBoardTheme';
+import { useAuth } from '../contexts/AuthContext';
 import { getOpeningName } from '../data/openings';
 import { colors, commonStyles, spacing, borderRadius, transitions } from '../theme';
+
+const Board3D = lazy(() => import('../components/Board3D'));
 
 export default function PlayLocal() {
   const [game, setGame] = useState(() => {
@@ -25,7 +28,10 @@ export default function PlayLocal() {
   const [status, setStatus] = useState("White's turn");
   const [pendingPromotion, setPendingPromotion] = useState(null);
   const [flipped, setFlipped] = useState(false);
+  const [view3D, setView3D] = useState(false);
   const navigate = useNavigate();
+  const { currentUser, updateProfile } = useAuth();
+  const isPremium = currentUser?.premium;
   const { playMove, playCapture, playCheck, playGameOver, playCastle, playPromotion } = useSoundEffects();
   const { boardTheme } = useBoardTheme();
   const openingName = getOpeningName(moveHistory);
@@ -162,7 +168,13 @@ export default function PlayLocal() {
             <span style={{ color: colors.textSecondary, fontSize: 14, fontWeight: 500 }}>{topColor}</span>
             <CapturedRow pieces={topCaptured} color={flipped ? 'w' : 'b'} />
           </div>
-          <Board game={game} selectedSquare={selectedSquare} legalMoves={legalMoves} lastMove={lastMove} onSquareClick={handleSquareClick} onDragMove={handleDragMove} flipped={flipped} themeColors={boardTheme} />
+          {view3D ? (
+            <Suspense fallback={<div style={{ width: '100%', maxWidth: 600, aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1a1a1d', borderRadius: 8, color: colors.textMuted }}>Loading 3D board...</div>}>
+              <Board3D game={game} selectedSquare={selectedSquare} legalMoves={legalMoves} lastMove={lastMove} onSquareClick={handleSquareClick} flipped={flipped} />
+            </Suspense>
+          ) : (
+            <Board game={game} selectedSquare={selectedSquare} legalMoves={legalMoves} lastMove={lastMove} onSquareClick={handleSquareClick} onDragMove={handleDragMove} flipped={flipped} themeColors={boardTheme} />
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 4px' }}>
             <span style={{ color: colors.textSecondary, fontSize: 14, fontWeight: 500 }}>{bottomColor}</span>
             <CapturedRow pieces={bottomCaptured} color={flipped ? 'b' : 'w'} />
@@ -184,9 +196,39 @@ export default function PlayLocal() {
               {status}
             </div>
           )}
-          <button onClick={() => setFlipped(f => !f)} style={commonStyles.buttonSecondary} aria-label="Flip board">
-            ⟳ Flip Board
-          </button>
+          <div style={{ display: 'flex', gap: spacing.xs }}>
+            <button onClick={() => setFlipped(f => !f)} style={{ ...commonStyles.buttonSecondary, flex: 1 }} aria-label="Flip board">
+              ⟳ Flip
+            </button>
+            {isPremium ? (
+              <button
+                onClick={() => setView3D(v => !v)}
+                style={{
+                  ...commonStyles.buttonSecondary, flex: 1,
+                  color: view3D ? colors.accent : colors.textDark,
+                  borderColor: view3D ? `${colors.accent}40` : colors.borderLight,
+                  background: view3D ? `${colors.accent}10` : 'transparent',
+                }}
+              >
+                {view3D ? '2D View' : '3D View'}
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  if (currentUser) { updateProfile({ premium: true }); }
+                  else { navigate('/signup'); }
+                }}
+                style={{
+                  ...commonStyles.buttonSecondary, flex: 1,
+                  color: '#d4af37', borderColor: '#d4af3740',
+                  fontSize: 12,
+                }}
+                title="Upgrade to premium for 3D board"
+              >
+                ★ 3D Board
+              </button>
+            )}
+          </div>
           {moveHistory.length > 0 && (
             <button onClick={() => {
               const g = gameRef.current;
