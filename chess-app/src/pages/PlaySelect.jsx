@@ -38,6 +38,12 @@ const ICONS = {
       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
     </svg>
   ),
+  spectate: (
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+    </svg>
+  ),
 };
 
 const modes = [
@@ -56,6 +62,14 @@ const modes = [
     description: 'Play against a friend on the same device',
     requiresAuth: false,
     accent: '#60a5fa',
+  },
+  {
+    to: '/play/spectate',
+    icon: ICONS.spectate,
+    title: 'AI vs AI',
+    description: 'Watch two Stockfish engines battle at different skill levels',
+    requiresAuth: false,
+    accent: '#14b8a6',
   },
   {
     to: '/play/online',

@@ -1001,6 +1001,96 @@ test.describe('23b. FIDE Elo, Titles & Friends', () => {
   });
 });
 
+// ════════════════════════════════════════════════════════════════════════════════
+// 23c. AI vs AI SPECTATING
+// ════════════════════════════════════════════════════════════════════════════════
+
+test.describe('23c. AI vs AI Spectating', () => {
+  test('play select shows AI vs AI game mode', async ({ page }) => {
+    await go(page, '/play');
+    await expect(page.getByText('AI vs AI')).toBeVisible();
+    await expect(page.getByText('Watch two Stockfish engines battle')).toBeVisible();
+  });
+
+  test('clicking AI vs AI navigates to spectate page', async ({ page }) => {
+    await go(page, '/play');
+    await page.getByText('AI vs AI').click();
+    await page.waitForURL('/play/spectate');
+    await expect(page.getByRole('heading', { name: 'AI vs AI' })).toBeVisible();
+  });
+
+  test('spectate setup shows engine difficulty and speed options', async ({ page }) => {
+    await go(page, '/play/spectate');
+    await expect(page.getByText('White Engine')).toBeVisible();
+    await expect(page.getByText('Black Engine')).toBeVisible();
+    await expect(page.getByText('Move Speed')).toBeVisible();
+    // Speed buttons
+    await expect(page.getByRole('button', { name: '0.5s' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '1s' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '5s', exact: true })).toBeVisible();
+  });
+
+  test('can select different engine difficulties', async ({ page }) => {
+    await go(page, '/play/spectate');
+    // Click Easy for White
+    const easyButtons = page.getByRole('button', { name: /Easy/ });
+    await easyButtons.first().click();
+    await page.waitForTimeout(200);
+    // Click Hard for Black
+    const hardButtons = page.getByRole('button', { name: /Hard/ });
+    await hardButtons.last().click();
+    await page.waitForTimeout(200);
+  });
+
+  test('start match loads the board and engines begin playing', async ({ page }) => {
+    await go(page, '/play/spectate');
+    // Wait for engines to load
+    await page.waitForSelector('button:not([disabled])', { timeout: 15000 });
+    const startBtn = page.getByRole('button', { name: 'Start Match' });
+    await startBtn.click();
+    // Board should appear
+    await page.waitForSelector('.board-square', { timeout: 10000 });
+    expect(await page.locator('.board-square').count()).toBe(64);
+    // Should show "AI vs AI" heading
+    await expect(page.getByRole('heading', { name: 'AI vs AI' })).toBeVisible();
+    // Should show pause button
+    await expect(page.getByRole('button', { name: /Pause/ })).toBeVisible();
+    // Wait for first move (thinking indicator or move in history)
+    await page.waitForTimeout(3000);
+    // Move counter should show some moves
+    const moveText = await page.getByText(/half-moves/).textContent();
+    expect(moveText).toBeTruthy();
+  });
+
+  test('pause and resume controls work', async ({ page }) => {
+    await go(page, '/play/spectate');
+    await page.waitForSelector('button:not([disabled])', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Start Match' }).click();
+    await page.waitForSelector('.board-square', { timeout: 10000 });
+    await page.waitForTimeout(2000);
+    // Pause
+    await page.getByRole('button', { name: /Pause/ }).click();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('button', { name: /Resume/ })).toBeVisible();
+    // Resume
+    await page.getByRole('button', { name: /Resume/ }).click();
+    await page.waitForTimeout(300);
+    await expect(page.getByRole('button', { name: /Pause/ })).toBeVisible();
+  });
+
+  test('back to setup button works', async ({ page }) => {
+    await go(page, '/play/spectate');
+    await page.waitForSelector('button:not([disabled])', { timeout: 15000 });
+    await page.getByRole('button', { name: 'Start Match' }).click();
+    await page.waitForSelector('.board-square', { timeout: 10000 });
+    // Click back to setup
+    await page.getByRole('button', { name: 'Back to Setup' }).click();
+    await page.waitForTimeout(500);
+    // Should be back on setup screen
+    await expect(page.getByText('White Engine')).toBeVisible();
+  });
+});
+
 test.describe('23. Cross-Feature Navigation', () => {
   test('full user journey: signup → play → history → achievements', async ({ page }) => {
     // Step 1: Signup

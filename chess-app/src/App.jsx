@@ -23,6 +23,7 @@ import AnalysisBoard from './pages/AnalysisBoard';
 import Achievements from './pages/Achievements';
 import DailyChallenges from './pages/DailyChallenges';
 import PlayerCompare from './pages/PlayerCompare';
+import SpectateAI from './pages/SpectateAI';
 import { useTheme } from './contexts/ThemeContext';
 
 export default function App() {
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="play" element={<PlaySelect />} />
           <Route path="play/ai" element={<PlayAI />} />
           <Route path="play/local" element={<PlayLocal />} />
+          <Route path="play/spectate" element={<SpectateAI />} />
           <Route path="play/online" element={<ProtectedRoute><PlayOnline /></ProtectedRoute>} />
           <Route path="play/multiplayer" element={<ProtectedRoute><PlayMultiplayer /></ProtectedRoute>} />
           <Route path="profile/:userId" element={<Profile />} />
