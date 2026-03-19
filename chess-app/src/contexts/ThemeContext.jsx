@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { darkTheme, lightTheme } from '../themes';
+import { _setActiveTheme } from '../theme';
 
 const STORAGE_KEY = 'chess_theme';
 
@@ -24,10 +25,20 @@ export function ThemeProvider({ children }) {
     } catch {
       // localStorage may be unavailable
     }
+    // Update the global theme reference so colors/shadows proxies reflect the new theme
+    _setActiveTheme(theme === 'dark' ? darkTheme : lightTheme);
+    // Update body background for areas outside the React root
+    document.body.style.backgroundColor = theme === 'dark' ? darkTheme.colors.bg : lightTheme.colors.bg;
+    document.body.style.color = theme === 'dark' ? darkTheme.colors.text : lightTheme.colors.text;
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeState((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      // Update the global proxy synchronously before re-render
+      _setActiveTheme(next === 'dark' ? darkTheme : lightTheme);
+      return next;
+    });
   }, []);
 
   const setTheme = useCallback((newTheme) => {

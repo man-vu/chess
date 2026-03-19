@@ -21,6 +21,7 @@ body {
   color: #ececef;
   line-height: 1.6;
   overflow-x: hidden;
+  transition: background-color 200ms ease, color 200ms ease;
 }
 
 /* Scrollbar */

@@ -27,14 +27,12 @@ import SpectateAI from './pages/SpectateAI';
 import { useTheme } from './contexts/ThemeContext';
 
 export default function App() {
-  const { themeObject } = useTheme();
+  // Subscribe to theme changes — triggers re-render of entire tree
+  // so all components pick up new colors from the proxy
+  useTheme();
 
   return (
-    <div style={{
-      '--bg': themeObject.colors.bg,
-      '--bg-card': themeObject.colors.bgCard,
-      '--text': themeObject.colors.text,
-    }}>
+    <div>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
